@@ -5,6 +5,8 @@ import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
 import { Button } from '../../components/common/Button/Button.tsx'
 import { PageHeader } from '../../components/common/PageHeader/PageHeader.tsx'
 import { StickyBottomCTA } from '../../components/common/StickyBottomCTA/StickyBottomCTA.tsx'
+import { ErrorState } from '../../components/feedback/ErrorState/ErrorState.tsx'
+import { NotFoundState } from '../../components/feedback/NotFoundState/NotFoundState.tsx'
 import { getCourseById } from '../../services/recommendationService.ts'
 import type { Course, FatigueLevel, ItineraryItem } from '../../types/course.ts'
 import styles from './CourseDetailPage.module.css'
@@ -31,18 +33,28 @@ export function CourseDetailPage() {
   const navigate = useNavigate()
   const { courseId = '' } = useParams()
   const [course, setCourse] = useState<Course | null>()
+  const [hasError, setHasError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let isCurrent = true
 
-    getCourseById(courseId).then((result) => {
-      if (isCurrent) setCourse(result)
-    })
+    setCourse(undefined)
+    setHasError(false)
+    getCourseById(courseId)
+      .then((result) => {
+        if (isCurrent) setCourse(result)
+      })
+      .catch(() => {
+        if (!isCurrent) return
+        setHasError(true)
+        setCourse(null)
+      })
 
     return () => {
       isCurrent = false
     }
-  }, [courseId])
+  }, [courseId, retryKey])
 
   if (course === undefined) {
     return (
@@ -55,16 +67,31 @@ export function CourseDetailPage() {
     )
   }
 
+  if (hasError) {
+    return (
+      <AppShell>
+        <PageHeader title="코스 상세" showBack onBack={() => navigate('/results')} />
+        <main className="page-content">
+          <ErrorState
+            onRetry={() => setRetryKey((current) => current + 1)}
+            onBack={() => navigate('/plan')}
+          />
+        </main>
+      </AppShell>
+    )
+  }
+
   if (course === null) {
     return (
       <AppShell>
         <PageHeader title="코스 상세" showBack onBack={() => navigate('/results')} />
-        <main className={`page-content ${styles.missing}`}>
-          <h1>코스를 찾지 못했어요.</h1>
-          <p>추천 결과에서 다른 코스를 선택해주세요.</p>
-          <Button type="button" onClick={() => navigate('/results')}>
-            추천 결과로 돌아가기
-          </Button>
+        <main className="page-content">
+          <NotFoundState
+            title="코스를 찾지 못했어요."
+            description="추천 결과에서 다른 코스를 선택해주세요."
+            onBack={() => navigate('/results')}
+            onHome={() => navigate('/')}
+          />
         </main>
       </AppShell>
     )

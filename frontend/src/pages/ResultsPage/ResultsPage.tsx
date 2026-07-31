@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
 import { PageHeader } from '../../components/common/PageHeader/PageHeader.tsx'
 import { CourseCard } from '../../components/course/CourseCard/CourseCard.tsx'
+import { ErrorState } from '../../components/feedback/ErrorState/ErrorState.tsx'
 import { NoResultsState } from '../../components/feedback/NoResultsState/NoResultsState.tsx'
 import { useTravelConditions } from '../../contexts/TravelConditionsContext.tsx'
 import { getRecommendations } from '../../services/recommendationService.ts'
@@ -37,12 +38,15 @@ export function ResultsPage() {
   const { conditions, isComplete } = useTravelConditions()
   const [courses, setCourses] = useState<CourseSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let isCurrent = true
 
     if (!isComplete) {
       setCourses([])
+      setHasError(false)
       setIsLoading(false)
       return () => {
         isCurrent = false
@@ -50,16 +54,24 @@ export function ResultsPage() {
     }
 
     setIsLoading(true)
-    getRecommendations(conditions).then((recommendations) => {
-      if (!isCurrent) return
-      setCourses(recommendations)
-      setIsLoading(false)
-    })
+    setHasError(false)
+    getRecommendations(conditions)
+      .then((recommendations) => {
+        if (!isCurrent) return
+        setCourses(recommendations)
+        setIsLoading(false)
+      })
+      .catch(() => {
+        if (!isCurrent) return
+        setCourses([])
+        setHasError(true)
+        setIsLoading(false)
+      })
 
     return () => {
       isCurrent = false
     }
-  }, [conditions, isComplete])
+  }, [conditions, isComplete, retryKey])
 
   const conditionLabels = [
     conditions.departure ? departureLabels[conditions.departure] : null,
@@ -85,6 +97,11 @@ export function ResultsPage() {
             <div className={styles.loadingLine} />
             <div className={styles.loadingLineShort} />
           </section>
+        ) : hasError ? (
+          <ErrorState
+            onRetry={() => setRetryKey((current) => current + 1)}
+            onBack={() => navigate('/plan')}
+          />
         ) : courses.length === 0 ? (
           <NoResultsState
             onReset={() => navigate('/plan')}

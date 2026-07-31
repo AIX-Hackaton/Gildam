@@ -197,17 +197,11 @@
   background: var(--color-surface-subtle);
 }
 
-.loading,
-.missing {
+.loading {
   display: grid;
   gap: var(--space-3);
   color: var(--color-text-secondary);
   text-align: center;
-}
-
-.missing h1,
-.missing p {
-  margin: 0;
 }
 
 @media (max-width: 350px) {
