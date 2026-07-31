@@ -1,0 +1,135 @@
+.main {
+  display: grid;
+  gap: var(--space-5);
+  padding-bottom: var(--space-8);
+}
+
+.intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.intro h1 {
+  margin: 0;
+  font-size: var(--font-size-h1);
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+.intro p {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+}
+
+.changeButton {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-primary-800);
+  background: var(--color-surface);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+}
+
+.conditionChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.conditionChips span {
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-subtle);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+.alternatives {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.sectionHeading h2,
+.sectionHeading p {
+  margin: 0;
+}
+
+.sectionHeading h2 {
+  font-size: var(--font-size-h2);
+}
+
+.sectionHeading p {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-caption);
+}
+
+.alternativeList {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.loading {
+  display: grid;
+  gap: var(--space-4);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding-bottom: var(--space-5);
+}
+
+.loadingImage,
+.loadingLine,
+.loadingLineShort {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-subtle),
+    var(--color-primary-50),
+    var(--color-surface-subtle)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite linear;
+}
+
+.loadingImage {
+  aspect-ratio: 16 / 8;
+}
+
+.loadingLine,
+.loadingLineShort {
+  height: 16px;
+  margin-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+}
+
+.loadingLineShort {
+  width: 55%;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingImage,
+  .loadingLine,
+  .loadingLineShort {
+    animation: none;
+  }
+}
