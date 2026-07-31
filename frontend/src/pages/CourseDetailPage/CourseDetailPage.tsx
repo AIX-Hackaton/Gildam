@@ -4,18 +4,13 @@ import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
 import { Button } from '../../components/common/Button/Button.tsx'
 import { PageHeader } from '../../components/common/PageHeader/PageHeader.tsx'
 import { StickyBottomCTA } from '../../components/common/StickyBottomCTA/StickyBottomCTA.tsx'
+import { CourseInfoCard } from '../../components/course/CourseInfoCard/CourseInfoCard.tsx'
 import { CourseMetrics } from '../../components/course/CourseMetrics/CourseMetrics.tsx'
+import { ItineraryTimeline } from '../../components/course/ItineraryTimeline/ItineraryTimeline.tsx'
 import { ErrorState } from '../../components/feedback/ErrorState/ErrorState.tsx'
 import { NotFoundState } from '../../components/feedback/NotFoundState/NotFoundState.tsx'
 import { useCourseDetail } from '../../hooks/useCourseDetail.ts'
-import type { ItineraryItem } from '../../types/course.ts'
 import styles from './CourseDetailPage.module.css'
-
-const itineraryTypeLabels: Record<ItineraryItem['type'], string> = {
-  transport: '이동',
-  place: '장소',
-  food: '식사',
-}
 
 export function CourseDetailPage() {
   const navigate = useNavigate()
@@ -98,40 +93,25 @@ export function CourseDetailPage() {
 
         <section className={styles.section}>
           <h2>코스 순서</h2>
-          <ol className={styles.timeline}>
-            {course.itinerary.map((item) => (
-              <li key={item.id}>
-                <div className={styles.timelineMarker} aria-hidden="true" />
-                <div className={styles.timelineContent}>
-                  <div className={styles.timelineTop}>
-                    <span className={styles.time}>{item.time}</span>
-                    <span className={styles.type}>{itineraryTypeLabels[item.type]}</span>
-                    {item.durationMinutes ? (
-                      <span className={styles.duration}>{item.durationMinutes}분</span>
-                    ) : null}
-                  </div>
-                  <h3>{item.name}</h3>
-                  {item.note ? <p>{item.note}</p> : null}
-                </div>
-              </li>
-            ))}
-          </ol>
+          <ItineraryTimeline items={course.itinerary} />
         </section>
 
         {course.localFood.map((food) => (
-          <section className={styles.infoCard} key={food.id}>
-            <p className={styles.cardLabel}>지역 음식</p>
-            <h2>{food.name}</h2>
-            <p>{food.description}</p>
-          </section>
+          <CourseInfoCard
+            key={food.id}
+            label="지역 음식"
+            title={food.name}
+            description={food.description}
+          />
         ))}
 
         {course.localPoints.map((point) => (
-          <section className={styles.infoCard} key={point.id}>
-            <p className={styles.cardLabel}>로컬 포인트</p>
-            <h2>{point.title}</h2>
-            <p>{point.description}</p>
-          </section>
+          <CourseInfoCard
+            key={point.id}
+            label="로컬 포인트"
+            title={point.title}
+            description={point.description}
+          />
         ))}
 
         <section className={styles.section}>
