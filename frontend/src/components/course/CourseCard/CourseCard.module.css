@@ -76,33 +76,6 @@
   font-weight: 600;
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0;
-  padding: var(--space-3) 0;
-}
-
-.metrics > div {
-  min-width: 0;
-  padding: 0 6px;
-  text-align: center;
-}
-
-.metrics dt {
-  margin-bottom: var(--space-1);
-  color: var(--color-text-tertiary);
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-.metrics dd {
-  margin: 0;
-  font-size: var(--font-size-caption);
-  font-weight: 700;
-  word-break: keep-all;
-}
-
 .reasons h3 {
   margin: 0 0 var(--space-2);
   font-size: var(--font-size-body);
@@ -115,12 +88,4 @@
   padding-left: 18px;
   color: var(--color-text-secondary);
   font-size: var(--font-size-caption);
-}
-
-@media (max-width: 350px) {
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: var(--space-3);
-  }
-
 }

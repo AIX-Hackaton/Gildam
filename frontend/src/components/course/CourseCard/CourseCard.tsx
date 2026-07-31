@@ -1,5 +1,6 @@
-import type { CourseSummary, FatigueLevel } from '../../../types/course.ts'
+import type { CourseSummary } from '../../../types/course.ts'
 import { Button } from '../../common/Button/Button.tsx'
+import { CourseMetrics } from '../CourseMetrics/CourseMetrics.tsx'
 import styles from './CourseCard.module.css'
 
 interface CourseCardProps {
@@ -7,18 +8,6 @@ interface CourseCardProps {
   featured?: boolean
   rank?: number
   onOpen: () => void
-}
-
-const fatigueLabels: Record<FatigueLevel, string> = {
-  LOW: '낮음',
-  MEDIUM: '보통',
-  HIGH: '높음',
-}
-
-function formatDuration(minutes: number) {
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = minutes % 60
-  return remainingMinutes ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`
 }
 
 export function CourseCard({
@@ -56,24 +45,7 @@ export function CourseCard({
           ))}
         </div>
 
-        <dl className={styles.metrics}>
-          <div>
-            <dt>이동 피로도</dt>
-            <dd>{fatigueLabels[course.fatigueLevel]}</dd>
-          </div>
-          <div>
-            <dt>환승</dt>
-            <dd>{course.transferCount}회</dd>
-          </div>
-          <div>
-            <dt>총 도보</dt>
-            <dd>{course.walkingMinutes}분</dd>
-          </div>
-          <div>
-            <dt>예상 시간</dt>
-            <dd>{formatDuration(course.durationMinutes)}</dd>
-          </div>
-        </dl>
+        <CourseMetrics course={course} variant="card" />
 
         {featured ? (
           <section className={styles.reasons} aria-labelledby={`${course.id}-reason`}>

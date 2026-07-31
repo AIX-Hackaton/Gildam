@@ -6,33 +6,13 @@ import { Button } from '../../components/common/Button/Button.tsx'
 import { PageHeader } from '../../components/common/PageHeader/PageHeader.tsx'
 import { SelectableChip } from '../../components/common/SelectableChip/SelectableChip.tsx'
 import { StickyBottomCTA } from '../../components/common/StickyBottomCTA/StickyBottomCTA.tsx'
-import { useTravelConditions } from '../../contexts/TravelConditionsContext.tsx'
-import type {
-  DepartureId,
-  DurationId,
-  PreferenceId,
-} from '../../types/travelConditions.ts'
+import {
+  departureOptions,
+  durationOptions,
+  preferenceOptions,
+} from '../../constants/travelConditionOptions.ts'
+import { useTravelConditions } from '../../hooks/useTravelConditions.ts'
 import styles from './PlanPage.module.css'
-
-const departures: Array<{ id: DepartureId; label: string }> = [
-  { id: 'GWANGJU_SONGJEONG', label: '광주송정역' },
-  { id: 'USQUARE', label: '유스퀘어' },
-]
-
-const durations: Array<{ id: DurationId; label: string }> = [
-  { id: 'SIX_HOURS', label: '6시간' },
-  { id: 'FULL_DAY', label: '하루 종일' },
-]
-
-const preferences: Array<{
-  id: PreferenceId
-  label: string
-}> = [
-  { id: 'NATURE_WALK', label: '자연·산책' },
-  { id: 'HISTORY_CULTURE', label: '역사·문화' },
-  { id: 'FOOD_MARKET', label: '음식·시장' },
-  { id: 'MEMORY', label: '감성기록' },
-]
 
 export function PlanPage() {
   const navigate = useNavigate()
@@ -77,7 +57,7 @@ export function PlanPage() {
           <fieldset className={styles.group}>
             <legend className={styles.legend}>출발지</legend>
             <div className={styles.twoColumn}>
-              {departures.map((departure) => (
+              {departureOptions.map((departure) => (
                 <SelectableChip
                   key={departure.id}
                   label={departure.label}
@@ -91,7 +71,7 @@ export function PlanPage() {
           <fieldset className={styles.group}>
             <legend className={styles.legend}>가능 시간</legend>
             <div className={styles.twoColumn}>
-              {durations.map((duration) => (
+              {durationOptions.map((duration) => (
                 <SelectableChip
                   key={duration.id}
                   label={duration.label}
@@ -108,7 +88,7 @@ export function PlanPage() {
               <span className={styles.hint}>복수 선택 가능</span>
             </legend>
             <div className={styles.preferenceGrid}>
-              {preferences.map((preference) => (
+              {preferenceOptions.map((preference) => (
                 <SelectableChip
                   key={preference.id}
                   label={preference.label}

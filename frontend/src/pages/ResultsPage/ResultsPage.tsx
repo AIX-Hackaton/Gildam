@@ -6,32 +6,16 @@ import { PageHeader } from '../../components/common/PageHeader/PageHeader.tsx'
 import { CourseCard } from '../../components/course/CourseCard/CourseCard.tsx'
 import { ErrorState } from '../../components/feedback/ErrorState/ErrorState.tsx'
 import { NoResultsState } from '../../components/feedback/NoResultsState/NoResultsState.tsx'
-import { useTravelConditions } from '../../contexts/TravelConditionsContext.tsx'
+import {
+  departureOptions,
+  durationOptions,
+  getOptionLabel,
+  preferenceOptions,
+} from '../../constants/travelConditionOptions.ts'
+import { useTravelConditions } from '../../hooks/useTravelConditions.ts'
 import { getRecommendations } from '../../services/recommendationService.ts'
 import type { CourseSummary } from '../../types/course.ts'
-import type {
-  DepartureId,
-  DurationId,
-  PreferenceId,
-} from '../../types/travelConditions.ts'
 import styles from './ResultsPage.module.css'
-
-const departureLabels: Record<DepartureId, string> = {
-  GWANGJU_SONGJEONG: '광주송정역',
-  USQUARE: '유스퀘어',
-}
-
-const durationLabels: Record<DurationId, string> = {
-  SIX_HOURS: '6시간',
-  FULL_DAY: '하루 종일',
-}
-
-const preferenceLabels: Record<PreferenceId, string> = {
-  NATURE_WALK: '자연·산책',
-  HISTORY_CULTURE: '역사·문화',
-  FOOD_MARKET: '음식·시장',
-  MEMORY: '감성기록',
-}
 
 export function ResultsPage() {
   const navigate = useNavigate()
@@ -74,10 +58,14 @@ export function ResultsPage() {
   }, [conditions, isComplete, retryKey])
 
   const conditionLabels = [
-    conditions.departure ? departureLabels[conditions.departure] : null,
-    conditions.duration ? durationLabels[conditions.duration] : null,
+    conditions.departure
+      ? getOptionLabel(departureOptions, conditions.departure)
+      : null,
+    conditions.duration
+      ? getOptionLabel(durationOptions, conditions.duration)
+      : null,
     ...conditions.preferences.map((preference) =>
-      preferenceLabels[preference],
+      getOptionLabel(preferenceOptions, preference),
     ),
   ].filter(Boolean) as string[]
 

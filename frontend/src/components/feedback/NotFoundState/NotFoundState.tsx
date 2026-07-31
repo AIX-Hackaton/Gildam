@@ -1,4 +1,5 @@
 import { Button } from '../../common/Button/Button.tsx'
+import layout from '../FeedbackStateLayout.module.css'
 import styles from './NotFoundState.module.css'
 
 interface NotFoundStateProps {
@@ -15,11 +16,13 @@ export function NotFoundState({
   onBack,
 }: NotFoundStateProps) {
   return (
-    <section className={styles.state} aria-labelledby="not-found-title">
+    <section className={layout.state} aria-labelledby="not-found-title">
       <p className={styles.code}>404</p>
-      <h1 id="not-found-title">{title}</h1>
-      <p className={styles.description}>{description}</p>
-      <div className={styles.actions}>
+      <h1 className={layout.title} id="not-found-title">
+        {title}
+      </h1>
+      <p className={layout.description}>{description}</p>
+      <div className={layout.actions}>
         {onBack ? (
           <Button type="button" size="large" fullWidth onClick={onBack}>
             추천 결과로 돌아가기

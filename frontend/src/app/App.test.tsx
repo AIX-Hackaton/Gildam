@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import App from './App.tsx'
-import { TravelConditionsProvider } from '../contexts/TravelConditionsContext.tsx'
+import { TravelConditionsProvider } from '../contexts/TravelConditionsProvider.tsx'
 
 describe('App', () => {
   it('renders the home message', () => {

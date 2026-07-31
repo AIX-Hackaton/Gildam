@@ -5,28 +5,17 @@ import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
 import { Button } from '../../components/common/Button/Button.tsx'
 import { PageHeader } from '../../components/common/PageHeader/PageHeader.tsx'
 import { StickyBottomCTA } from '../../components/common/StickyBottomCTA/StickyBottomCTA.tsx'
+import { CourseMetrics } from '../../components/course/CourseMetrics/CourseMetrics.tsx'
 import { ErrorState } from '../../components/feedback/ErrorState/ErrorState.tsx'
 import { NotFoundState } from '../../components/feedback/NotFoundState/NotFoundState.tsx'
 import { getCourseById } from '../../services/recommendationService.ts'
-import type { Course, FatigueLevel, ItineraryItem } from '../../types/course.ts'
+import type { Course, ItineraryItem } from '../../types/course.ts'
 import styles from './CourseDetailPage.module.css'
-
-const fatigueLabels: Record<FatigueLevel, string> = {
-  LOW: '낮음',
-  MEDIUM: '보통',
-  HIGH: '높음',
-}
 
 const itineraryTypeLabels: Record<ItineraryItem['type'], string> = {
   transport: '이동',
   place: '장소',
   food: '식사',
-}
-
-function formatDuration(minutes: number) {
-  const hours = Math.floor(minutes / 60)
-  const remainingMinutes = minutes % 60
-  return remainingMinutes ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`
 }
 
 export function CourseDetailPage() {
@@ -119,24 +108,7 @@ export function CourseDetailPage() {
           </div>
         </section>
 
-        <dl className={styles.metrics}>
-          <div>
-            <dt>총 소요</dt>
-            <dd>{formatDuration(course.durationMinutes)}</dd>
-          </div>
-          <div>
-            <dt>총 도보</dt>
-            <dd>{course.walkingMinutes}분</dd>
-          </div>
-          <div>
-            <dt>환승</dt>
-            <dd>{course.transferCount}회</dd>
-          </div>
-          <div>
-            <dt>피로도</dt>
-            <dd>{fatigueLabels[course.fatigueLevel]}</dd>
-          </div>
-        </dl>
+        <CourseMetrics course={course} variant="detail" />
 
         <section className={styles.section}>
           <h2>이 코스를 추천하는 이유</h2>

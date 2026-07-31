@@ -55,33 +55,6 @@
   font-weight: 600;
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0;
-  padding: var(--space-4) var(--space-2);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-subtle);
-}
-
-.metrics > div {
-  min-width: 0;
-  text-align: center;
-}
-
-.metrics dt {
-  margin-bottom: var(--space-1);
-  color: var(--color-text-tertiary);
-  font-size: 11px;
-}
-
-.metrics dd {
-  margin: 0;
-  font-size: var(--font-size-caption);
-  font-weight: 700;
-  word-break: keep-all;
-}
-
 .section {
   display: grid;
   gap: var(--space-4);
@@ -202,11 +175,4 @@
   gap: var(--space-3);
   color: var(--color-text-secondary);
   text-align: center;
-}
-
-@media (max-width: 350px) {
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
-  }
 }
