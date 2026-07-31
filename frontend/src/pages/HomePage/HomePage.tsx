@@ -43,7 +43,7 @@ export function HomePage() {
         <section>
           <p className={styles.kicker}>광주에서 떠나는 전남 당일치기</p>
           <h1 className={styles.heading}>
-            차 없이도 충분한
+            차 없이도 충분한{' '}
             <br />
             전남 당일치기 여행
           </h1>
