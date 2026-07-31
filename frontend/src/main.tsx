@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import App from './app/App.tsx'
+import { TravelConditionsProvider } from './contexts/TravelConditionsContext.tsx'
 import './styles/tokens.css'
 import './styles/reset.css'
 import './styles/globals.css'
@@ -10,7 +11,9 @@ import './styles/globals.css'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <TravelConditionsProvider>
+        <App />
+      </TravelConditionsProvider>
     </BrowserRouter>
   </StrictMode>,
 )

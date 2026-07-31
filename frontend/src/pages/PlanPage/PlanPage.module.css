@@ -1,0 +1,56 @@
+.main {
+  padding-top: var(--space-3);
+}
+
+.intro {
+  margin-bottom: var(--space-8);
+}
+
+.heading {
+  font-size: var(--font-size-h1);
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+}
+
+.description {
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.group {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-title);
+  font-weight: 700;
+}
+
+.hint {
+  margin-left: var(--space-1);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+}
+
+.twoColumn {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.preferenceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
