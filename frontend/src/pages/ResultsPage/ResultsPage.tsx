@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 
 import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
 import { PageHeader } from '../../components/common/PageHeader/PageHeader.tsx'
@@ -12,50 +11,19 @@ import {
   getOptionLabel,
   preferenceOptions,
 } from '../../constants/travelConditionOptions.ts'
+import { useRecommendations } from '../../hooks/useRecommendations.ts'
 import { useTravelConditions } from '../../hooks/useTravelConditions.ts'
-import { getRecommendations } from '../../services/recommendationService.ts'
-import type { CourseSummary } from '../../types/course.ts'
 import styles from './ResultsPage.module.css'
 
 export function ResultsPage() {
   const navigate = useNavigate()
   const { conditions, isComplete } = useTravelConditions()
-  const [courses, setCourses] = useState<CourseSummary[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [hasError, setHasError] = useState(false)
-  const [retryKey, setRetryKey] = useState(0)
+  const { courses, isLoading, hasError, retry } = useRecommendations(
+    conditions,
+    isComplete,
+  )
 
-  useEffect(() => {
-    let isCurrent = true
-
-    if (!isComplete) {
-      setCourses([])
-      setHasError(false)
-      setIsLoading(false)
-      return () => {
-        isCurrent = false
-      }
-    }
-
-    setIsLoading(true)
-    setHasError(false)
-    getRecommendations(conditions)
-      .then((recommendations) => {
-        if (!isCurrent) return
-        setCourses(recommendations)
-        setIsLoading(false)
-      })
-      .catch(() => {
-        if (!isCurrent) return
-        setCourses([])
-        setHasError(true)
-        setIsLoading(false)
-      })
-
-    return () => {
-      isCurrent = false
-    }
-  }, [conditions, isComplete, retryKey])
+  if (!isComplete) return <Navigate to="/plan" replace />
 
   const conditionLabels = [
     conditions.departure
@@ -87,7 +55,7 @@ export function ResultsPage() {
           </section>
         ) : hasError ? (
           <ErrorState
-            onRetry={() => setRetryKey((current) => current + 1)}
+            onRetry={retry}
             onBack={() => navigate('/plan')}
           />
         ) : courses.length === 0 ? (
