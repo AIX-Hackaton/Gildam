@@ -11,6 +11,7 @@
 
   --color-background: #f7f8f8;
   --color-surface: #ffffff;
+  --color-surface-translucent: rgb(255 255 255 / 94%);
   --color-surface-subtle: #f1f4f4;
   --color-text-primary: #1a1a1a;
   --color-text-secondary: #66706f;
@@ -25,6 +26,7 @@
   --color-success: #188a5b;
   --color-warning: #d88a1d;
   --color-danger: #d94a4a;
+  --color-danger-surface: #fff1f1;
 
   --font-family-base: "Pretendard Variable", Pretendard, -apple-system,
     BlinkMacSystemFont, system-ui, "Segoe UI", sans-serif;
@@ -52,4 +54,5 @@
 
   --shadow-card: 0 4px 16px rgb(15 72 73 / 8%);
   --shadow-floating: 0 8px 28px rgb(15 72 73 / 12%);
+  --shadow-shell: 0 0 32px rgb(15 72 73 / 6%);
 }

@@ -33,7 +33,7 @@ a {
   max-width: 480px;
   margin: 0 auto;
   background: var(--color-surface);
-  box-shadow: 0 0 32px rgb(15 72 73 / 6%);
+  box-shadow: var(--shadow-shell);
 }
 
 .page-content {

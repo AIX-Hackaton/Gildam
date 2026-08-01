@@ -3,7 +3,7 @@
   padding: 6px 10px;
   border-radius: var(--radius-pill);
   color: var(--color-danger);
-  background: #fff1f1;
+  background: var(--color-danger-surface);
   font-size: var(--font-size-caption);
   font-weight: 700;
 }
