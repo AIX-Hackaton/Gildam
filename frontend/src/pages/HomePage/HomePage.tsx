@@ -3,28 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import heroJourney from '../../assets/hero-journey.svg'
 import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
 import { Button } from '../../components/common/Button/Button.tsx'
-import { IconButton } from '../../components/common/IconButton/IconButton.tsx'
 import styles from './HomePage.module.css'
-
-function BellIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
-      <path
-        d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 8.5h18C21 16 18 16 18 9Z"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9.75 20h4.5"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -36,7 +15,6 @@ export function HomePage() {
           길<span className={styles.logoAccent}>담</span>
           <span className={styles.leaf} aria-hidden="true" />
         </div>
-        <IconButton label="알림" icon={<BellIcon />} />
       </header>
 
       <main className={styles.main}>

@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
 import { Button } from '../../components/common/Button/Button.tsx'
 import { PageHeader } from '../../components/common/PageHeader/PageHeader.tsx'
-import { SelectableChip } from '../../components/common/SelectableChip/SelectableChip.tsx'
 import { StickyBottomCTA } from '../../components/common/StickyBottomCTA/StickyBottomCTA.tsx'
+import { ConditionGroup } from '../../components/plan/ConditionGroup/ConditionGroup.tsx'
 import {
   departureOptions,
   durationOptions,
@@ -54,50 +54,27 @@ export function PlanPage() {
           className={styles.form}
           onSubmit={handleSubmit}
         >
-          <fieldset className={styles.group}>
-            <legend className={styles.legend}>출발지</legend>
-            <div className={styles.twoColumn}>
-              {departureOptions.map((departure) => (
-                <SelectableChip
-                  key={departure.id}
-                  label={departure.label}
-                  selected={conditions.departure === departure.id}
-                  onSelect={() => setDeparture(departure.id)}
-                />
-              ))}
-            </div>
-          </fieldset>
+          <ConditionGroup
+            legend="출발지"
+            options={departureOptions}
+            isSelected={(id) => conditions.departure === id}
+            onSelect={setDeparture}
+          />
 
-          <fieldset className={styles.group}>
-            <legend className={styles.legend}>가능 시간</legend>
-            <div className={styles.twoColumn}>
-              {durationOptions.map((duration) => (
-                <SelectableChip
-                  key={duration.id}
-                  label={duration.label}
-                  selected={conditions.duration === duration.id}
-                  onSelect={() => setDuration(duration.id)}
-                />
-              ))}
-            </div>
-          </fieldset>
+          <ConditionGroup
+            legend="가능 시간"
+            options={durationOptions}
+            isSelected={(id) => conditions.duration === id}
+            onSelect={setDuration}
+          />
 
-          <fieldset className={styles.group}>
-            <legend className={styles.legend}>
-              취향
-              <span className={styles.hint}>복수 선택 가능</span>
-            </legend>
-            <div className={styles.preferenceGrid}>
-              {preferenceOptions.map((preference) => (
-                <SelectableChip
-                  key={preference.id}
-                  label={preference.label}
-                  selected={conditions.preferences.includes(preference.id)}
-                  onSelect={() => togglePreference(preference.id)}
-                />
-              ))}
-            </div>
-          </fieldset>
+          <ConditionGroup
+            legend="취향"
+            hint="복수 선택 가능"
+            options={preferenceOptions}
+            isSelected={(id) => conditions.preferences.includes(id)}
+            onSelect={togglePreference}
+          />
         </form>
       </main>
 
