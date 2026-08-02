@@ -23,6 +23,20 @@
 실제 코스 데이터가 확정되면 코스별 도보시간, 환승 횟수, 왕복 이동시간만
 채우고 이 함수를 통과시키면 됩니다.
 
+## 추천 후보 필터링
+
+`src/recommendations/filtering.ts`는 추천 점수 계산 전에 이용 불가능한 코스를
+제외합니다.
+
+- 선택한 출발지에서 출발할 수 없는 코스 제외
+- 선택한 가능 시간을 초과하는 코스 제외
+- 당일 귀가 가능성이 검증되지 않은 코스 제외
+
+기본 가능 시간은 `SIX_HOURS` 360분, `FULL_DAY` 720분입니다. 하루 종일의
+시간 기준이 바뀌면 `durationLimits` 옵션으로 덮어쓸 수 있습니다. 제외된
+코스는 `UNSUPPORTED_DEPARTURE`, `TIME_LIMIT_EXCEEDED`,
+`RETURN_NOT_FEASIBLE` 사유를 함께 반환합니다.
+
 ## 추천 순위 산정
 
 `src/recommendations/ranking.ts`는 하드 필터를 통과한 코스 후보를 같은
