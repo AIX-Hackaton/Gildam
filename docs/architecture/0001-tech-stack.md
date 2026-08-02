@@ -2,7 +2,7 @@
 
 - 상태: 부분 승인됨
 - 작성일: 2026-07-30
-- 수정일: 2026-07-31
+- 수정일: 2026-08-02
 
 ## 배경
 
@@ -46,10 +46,21 @@ Tailwind CSS 또는 다른 스타일링 방식이 기존 저장소에 이미 적
 - 추후 실제 API 연동 시 service layer 내부 구현만 교체합니다.
 - API 요청에는 기본 `fetch`를 사용합니다.
 
+## Backend
+
+- FastAPI
+- Pydantic response model
+- Uvicorn
+
+백엔드는 검증된 코스 조회와 추천 API를 담당합니다. 현재 코스 상세 API는
+MVP seed data를 사용하며, 실제 코스 DB가 확정되면 데이터 저장소만 교체합니다.
+지도 연결은 Kakao 지도 URL을 우선 사용합니다.
+
 ## Testing
 
 - Vitest
 - React Testing Library
+- Python `unittest`
 - 핵심 사용자 흐름과 예외 상태 위주로 테스트합니다.
 
 ## Deployment
@@ -67,7 +78,6 @@ Tailwind CSS 또는 다른 스타일링 방식이 기존 저장소에 이미 적
 ## 미결정 항목
 
 - 프론트엔드 패키지 관리자
-- 백엔드 언어와 프레임워크
 - API 계약 관리 또는 코드 생성 방식
 
 미결정 항목을 합의하면 이 문서를 갱신하고 관련 설치 및 검증 명령을
