@@ -46,8 +46,8 @@
 .tags span {
   padding: 5px 9px;
   border-radius: var(--radius-pill);
-  color: var(--color-primary-800);
-  background: var(--color-primary-50);
+  color: var(--color-text-accent);
+  background: var(--color-primary-300);
   font-size: var(--font-size-caption);
   font-weight: 600;
 }
