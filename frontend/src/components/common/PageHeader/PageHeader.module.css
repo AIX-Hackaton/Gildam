@@ -1,0 +1,41 @@
+.header {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  min-height: 56px;
+  padding: 0 var(--space-4);
+}
+
+.title {
+  overflow: hidden;
+  font-size: var(--font-size-title);
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand {
+  color: var(--color-primary-800);
+  font-size: var(--font-size-h1);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.action {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.end {
+  display: flex;
+  justify-content: flex-end;
+}

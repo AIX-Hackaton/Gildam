@@ -1,0 +1,5 @@
+.main {
+  display: grid;
+  gap: var(--space-5);
+  padding-bottom: var(--space-8);
+}

@@ -1,0 +1,50 @@
+.skeleton {
+  display: grid;
+  gap: var(--space-4);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding-bottom: var(--space-5);
+}
+
+.image,
+.line,
+.shortLine {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-subtle),
+    var(--color-primary-50),
+    var(--color-surface-subtle)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite linear;
+}
+
+.image {
+  aspect-ratio: 16 / 8;
+}
+
+.line,
+.shortLine {
+  height: 16px;
+  margin-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+}
+
+.shortLine {
+  width: 55%;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image,
+  .line,
+  .shortLine {
+    animation: none;
+  }
+}

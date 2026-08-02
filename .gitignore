@@ -8,6 +8,14 @@ node_modules/
 dist/
 build/
 coverage/
+.cache/
+.vite/
+*.tsbuildinfo
+
+# Local tooling and deployment metadata
+.agents/
+.codex/
+.vercel/
 
 # Logs
 *.log

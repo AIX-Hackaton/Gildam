@@ -1,0 +1,6 @@
+.loading {
+  display: grid;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+  text-align: center;
+}

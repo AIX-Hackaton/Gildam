@@ -1,0 +1,24 @@
+.main {
+  padding-top: var(--space-3);
+}
+
+.intro {
+  margin-bottom: var(--space-8);
+}
+
+.heading {
+  font-size: var(--font-size-h1);
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+}
+
+.description {
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-8);
+}
