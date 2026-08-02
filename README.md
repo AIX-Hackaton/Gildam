@@ -10,6 +10,7 @@
 - 기여 방법: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - 기술 결정: [`docs/architecture/`](docs/architecture/)
 - API 계약: [`docs/api/openapi.yaml`](docs/api/openapi.yaml)
+- 백엔드 구현 설명서: [`docs/backend/IMPLEMENTATION_GUIDE.md`](docs/backend/IMPLEMENTATION_GUIDE.md)
 
 제품 동작을 변경할 때는 코드보다 제품 명세를 먼저 수정합니다.
 
@@ -25,5 +26,12 @@ Gildam/
 
 ## 개발 환경
 
-프론트엔드와 백엔드 기술 스택은 아직 결정되지 않았습니다. 결정 전에는
-프레임워크별 초기화 파일이나 실행 명령을 임의로 추가하지 않습니다.
+프론트엔드는 React, TypeScript, Vite를 사용합니다. 백엔드는 FastAPI를 사용하며
+추천 계산 로직과 코스 상세 API를 분리해 관리합니다.
+
+백엔드 실행:
+
+```bash
+python -m pip install -r backend/requirements.txt
+python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
+```
