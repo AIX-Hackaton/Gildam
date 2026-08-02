@@ -26,11 +26,24 @@
 }
 
 .card {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
   padding: var(--space-1) 0;
 }
 
 .card > div {
   text-align: center;
+}
+
+.card dt {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.card dd {
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .detail {
@@ -40,7 +53,16 @@
 }
 
 @media (max-width: 350px) {
-  .metrics {
+  .detail {
     gap: var(--space-4);
+  }
+
+  .card {
+    gap: 2px;
+  }
+
+  .card dd {
+    font-size: 0.75rem;
+    letter-spacing: -0.04em;
   }
 }

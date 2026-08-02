@@ -2,7 +2,7 @@
   display: grid;
   gap: var(--space-4);
   overflow: hidden;
-  border: 1px solid rgb(23 98 78 / 14%);
+  border: 1px solid rgb(115 159 60 / 18%);
   border-radius: var(--radius-xl);
   padding-bottom: var(--space-5);
 }

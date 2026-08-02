@@ -28,14 +28,14 @@
 }
 
 .primary {
-  color: var(--color-surface);
+  color: var(--color-on-primary);
   background: var(--color-primary-700);
-  box-shadow: 0 8px 18px rgb(23 98 78 / 16%);
+  box-shadow: 0 8px 18px rgb(115 159 60 / 20%);
 }
 
 .primary:hover:not(:disabled) {
-  background: var(--color-primary-800);
-  box-shadow: 0 10px 22px rgb(16 72 59 / 20%);
+  background: var(--color-primary-600);
+  box-shadow: 0 10px 22px rgb(115 159 60 / 24%);
 }
 
 .secondary {
