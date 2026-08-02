@@ -3,7 +3,7 @@
   padding: 6px 10px;
   border-radius: var(--radius-pill);
   color: var(--color-primary-800);
-  background: var(--color-primary-50);
+  background: var(--color-primary-100);
   font-size: var(--font-size-caption);
   font-weight: 700;
 }
@@ -11,7 +11,7 @@
 .suggestions {
   width: 100%;
   margin: var(--space-6) 0 0;
-  padding: var(--space-4) var(--space-4) var(--space-4) 34px;
+  padding: var(--space-5) var(--space-5) var(--space-5) 38px;
   border-radius: var(--radius-lg);
   color: var(--color-text-secondary);
   background: var(--color-surface-subtle);

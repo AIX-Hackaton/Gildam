@@ -2,18 +2,19 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .intro h1 {
   margin: 0;
-  font-size: var(--font-size-h1);
-  line-height: 1.35;
+  font-size: var(--font-size-display);
+  line-height: 1.24;
+  letter-spacing: -0.04em;
   word-break: keep-all;
 }
 
 .intro p {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-3) 0 0;
   color: var(--color-text-secondary);
   font-size: var(--font-size-body);
 }
@@ -23,11 +24,20 @@
   min-height: 44px;
   padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md);
   color: var(--color-primary-800);
   background: var(--color-surface);
   font-size: var(--font-size-caption);
   font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.changeButton:hover {
+  background: var(--color-surface-subtle);
+  border-color: var(--color-primary-300);
 }
 
 .conditionChips {
@@ -39,16 +49,16 @@
 .conditionChips span {
   padding: 6px 10px;
   border-radius: var(--radius-pill);
-  color: var(--color-text-secondary);
-  background: var(--color-surface-subtle);
+  color: var(--color-primary-800);
+  background: var(--color-primary-50);
   font-size: var(--font-size-caption);
   font-weight: 600;
 }
 
 .alternatives {
   display: grid;
-  gap: var(--space-4);
-  margin-top: var(--space-3);
+  gap: var(--space-5);
+  margin-top: var(--space-2);
 }
 
 .sectionHeading {
@@ -74,5 +84,15 @@
 
 .alternativeList {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-5);
+}
+
+@media (max-width: 359px) {
+  .intro {
+    display: grid;
+  }
+
+  .changeButton {
+    justify-self: start;
+  }
 }

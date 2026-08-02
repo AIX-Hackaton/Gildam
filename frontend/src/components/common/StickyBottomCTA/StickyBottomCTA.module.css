@@ -10,7 +10,6 @@
     calc(var(--space-3) + env(safe-area-inset-bottom));
   margin: 0 auto;
   background: var(--color-surface-translucent);
-  border-top: 1px solid var(--color-border);
   box-shadow: var(--shadow-floating);
   backdrop-filter: blur(12px);
 }

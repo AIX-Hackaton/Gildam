@@ -1,12 +1,11 @@
 html {
-  background: var(--color-background);
+  background: var(--color-canvas);
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 body {
-  min-width: 320px;
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -32,13 +31,19 @@ a {
   min-height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
-  background: var(--color-surface);
+  background: var(--color-background);
   box-shadow: var(--shadow-shell);
 }
 
 .page-content {
-  padding: var(--space-5);
+  padding: var(--space-6) var(--space-5);
   padding-bottom: calc(112px + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 479px) {
+  .app-shell {
+    box-shadow: none;
+  }
 }
 
 .sr-only {

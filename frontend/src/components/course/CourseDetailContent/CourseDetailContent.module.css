@@ -1,11 +1,11 @@
 .main {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-10);
 }
 
 .hero {
   width: 100%;
-  aspect-ratio: 16 / 8;
+  aspect-ratio: 16 / 9;
   border-radius: var(--radius-xl);
   object-fit: cover;
 }
@@ -23,13 +23,14 @@
 }
 
 .intro h1 {
-  margin-top: var(--space-1);
-  font-size: var(--font-size-h1);
-  line-height: 1.4;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-display);
+  line-height: 1.3;
+  letter-spacing: -0.035em;
 }
 
 .description {
-  margin-top: var(--space-2) !important;
+  margin-top: var(--space-3) !important;
   color: var(--color-text-secondary);
   font-size: var(--font-size-body);
   word-break: keep-all;
@@ -53,17 +54,18 @@
 
 .section {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 
 .section h2 {
   font-size: var(--font-size-h2);
+  letter-spacing: -0.02em;
 }
 
 .reasonList,
 .promptList {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   margin: 0;
   padding-left: var(--space-5);
   color: var(--color-text-secondary);
@@ -76,7 +78,7 @@
 }
 
 .promptList li {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--color-surface-subtle);
+  background: #f6edda;
 }
