@@ -5,12 +5,15 @@
 
 # Dependencies and generated output
 node_modules/
+__pycache__/
+.venv/
 dist/
 build/
 coverage/
 .cache/
 .vite/
 *.tsbuildinfo
+*.py[cod]
 
 # Local tooling and deployment metadata
 .agents/

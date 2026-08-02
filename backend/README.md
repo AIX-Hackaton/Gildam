@@ -2,9 +2,20 @@
 
 검증된 코스 조회와 추천 API를 담당합니다.
 
-기술 스택이 정해지기 전에는 프레임워크 초기화 파일을 추가하지 않습니다.
-코스 데이터와 추천 규칙은 API 전달 계층과 분리하며, 제품 명세에 없는 코스를
-임의로 생성하지 않습니다.
+FastAPI로 API를 제공하며, 코스 데이터와 추천 규칙은 API 전달 계층과
+분리합니다. 제품 명세에 없는 코스를 임의로 생성하지 않습니다.
+
+## FastAPI 실행
+
+```bash
+python -m pip install -r backend/requirements.txt
+python -m uvicorn backend.app.main:app --reload
+```
+
+주요 엔드포인트:
+
+- `GET /health`
+- `GET /api/courses/{course_id}`
 
 ## 이동 피로도 계산
 
@@ -53,4 +64,20 @@
 
 ```bash
 node --experimental-strip-types --test backend/tests/*.test.ts
+python -m unittest discover -s backend/tests -p "test_*.py"
 ```
+
+## 코스 상세 API와 카카오맵 링크
+
+`backend/app/main.py`는 FastAPI 앱을 정의합니다. `GET /api/courses/{course_id}`는
+코스 상세 정보를 반환하고, 없는 코스 ID에는 404를 반환합니다.
+
+`backend/app/courses/kakao_map.py`는 Kakao 지도 URL 패턴을 사용해 장소 보기와
+길찾기 링크를 생성합니다.
+
+- 장소 보기: `https://map.kakao.com/link/map/{이름},{위도},{경도}`
+- 길찾기: `https://map.kakao.com/link/to/{이름},{위도},{경도}`
+
+현재 `backend/app/courses/data.py`의 코스 데이터는 프론트엔드 mock data와 맞춘
+MVP seed data입니다. 실제 코스 담당자가 검증한 좌표와 장소 ID를 제공하면 이
+파일을 코스 DB 또는 저장소 연동으로 교체합니다.
