@@ -19,7 +19,7 @@ export function CourseMetrics({ course, variant }: CourseMetricsProps) {
   const metrics =
     variant === 'card'
       ? [
-          { label: '이동 피로도', value: fatigueLabels[course.fatigueLevel] },
+          { label: '피로도', value: fatigueLabels[course.fatigueLevel] },
           { label: '환승', value: `${course.transferCount}회` },
           { label: '총 도보', value: `${course.walkingMinutes}분` },
           { label: '예상 시간', value: formatDuration(course.durationMinutes) },

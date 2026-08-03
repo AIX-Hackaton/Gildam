@@ -12,6 +12,8 @@ build/
 coverage/
 .cache/
 .vite/
+.pnpm-store/
+pnpm-lock.yaml
 *.tsbuildinfo
 *.py[cod]
 

@@ -25,7 +25,15 @@ export function CourseCard({
           alt={`${course.region} ${course.title} 대표 풍경`}
         />
         {featured ? (
-          <span className={styles.rankBadge}>{rank ?? 1}순위 추천</span>
+          <span
+            className={styles.rankBadge}
+            aria-label={`${rank ?? 1}순위 추천`}
+          >
+            <span className={styles.rankBrand} aria-hidden="true">
+              GILDAM
+            </span>
+            <span aria-hidden="true">{rank ?? 1}순위 추천</span>
+          </span>
         ) : null}
       </div>
 
@@ -37,6 +45,8 @@ export function CourseCard({
           </div>
         </div>
 
+        <CourseMetrics course={course} variant="card" />
+
         <div className={styles.tags} aria-label="코스 취향">
           {course.tags.map((tag) => (
             <span className={styles.tag} key={tag}>
@@ -44,8 +54,6 @@ export function CourseCard({
             </span>
           ))}
         </div>
-
-        <CourseMetrics course={course} variant="card" />
 
         {featured ? (
           <section className={styles.reasons} aria-labelledby={`${course.id}-reason`}>

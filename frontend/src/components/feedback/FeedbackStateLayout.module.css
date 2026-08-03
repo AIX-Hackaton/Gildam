@@ -1,20 +1,32 @@
 .state {
+  position: relative;
   display: grid;
   justify-items: center;
-  padding: var(--space-10) var(--space-4);
+  padding: 4rem var(--space-4) var(--space-10);
   text-align: center;
+}
+
+.state::before {
+  width: 68px;
+  height: 30px;
+  margin-bottom: var(--space-4);
+  border-top: 2px dashed var(--color-accent-coral);
+  border-radius: 50%;
+  content: '';
+  transform: rotate(-10deg);
 }
 
 .title {
   margin: 0;
-  font-size: var(--font-size-h1);
-  line-height: 1.4;
+  font-size: var(--font-size-display);
+  line-height: 1.3;
+  letter-spacing: -0.025em;
   word-break: keep-all;
 }
 
 .description {
   max-width: 290px;
-  margin: var(--space-3) 0 0;
+  margin: var(--space-4) 0 0;
   color: var(--color-text-secondary);
   font-size: var(--font-size-body);
   word-break: keep-all;
@@ -24,5 +36,11 @@
   display: grid;
   width: 100%;
   gap: var(--space-3);
-  margin-top: var(--space-8);
+  margin-top: var(--space-10);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .state::before {
+    transform: none;
+  }
 }

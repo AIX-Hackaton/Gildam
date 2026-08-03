@@ -1,55 +1,68 @@
 .metrics {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5) var(--space-6);
   margin: 0;
 }
 
 .metrics > div {
   min-width: 0;
-  text-align: center;
+  text-align: left;
 }
 
 .metrics dt {
-  margin-bottom: var(--space-1);
-  color: var(--color-text-tertiary);
-  font-size: 11px;
+  margin-bottom: 2px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
 }
 
 .metrics dd {
   margin: 0;
-  font-size: var(--font-size-caption);
+  color: var(--color-text-primary);
+  font-size: 1.125rem;
   font-weight: 700;
+  line-height: 1.45;
   word-break: keep-all;
 }
 
 .card {
-  padding: var(--space-3) 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
 }
 
 .card > div {
-  padding: 0 6px;
+  text-align: center;
 }
 
 .card dt {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.card dd {
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .detail {
-  padding: var(--space-4) var(--space-2);
+  padding: var(--space-5);
   border-radius: var(--radius-lg);
   background: var(--color-surface-subtle);
 }
 
 @media (max-width: 350px) {
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .detail {
+    gap: var(--space-4);
   }
 
   .card {
-    row-gap: var(--space-3);
+    gap: 2px;
   }
 
-  .detail {
-    gap: var(--space-4);
+  .card dd {
+    font-size: 0.75rem;
+    letter-spacing: -0.04em;
   }
 }

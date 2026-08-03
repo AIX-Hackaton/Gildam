@@ -6,14 +6,14 @@
 }
 
 .featured {
-  border-color: var(--color-primary-300);
+  border-color: rgb(115 159 60 / 24%);
   box-shadow: var(--shadow-card);
 }
 
 .imageWrap {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 8;
+  aspect-ratio: 16 / 9;
   background: var(--color-surface-subtle);
 }
 
@@ -26,20 +26,36 @@
 .rankBadge {
   position: absolute;
   top: var(--space-3);
-  left: var(--space-3);
-  padding: 6px 10px;
-  border-radius: var(--radius-pill);
-  color: var(--color-primary-800);
-  background: var(--color-surface);
-  font-size: var(--font-size-caption);
+  right: var(--space-3);
+  display: grid;
+  min-width: 82px;
+  padding: 9px 12px 8px;
+  border: 2px solid var(--color-accent-coral);
+  border-radius: 10px;
+  color: #b94f32;
+  background: rgb(255 253 248 / 96%);
+  box-shadow:
+    inset 0 0 0 3px var(--color-surface),
+    inset 0 0 0 4px rgb(230 120 85 / 72%);
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  letter-spacing: -0.02em;
+  transform: rotate(-5deg);
+}
+
+.rankBrand {
+  margin-bottom: 3px;
+  font-size: 0.625rem;
   font-weight: 700;
-  box-shadow: var(--shadow-card);
+  letter-spacing: 0.12em;
 }
 
 .content {
   display: grid;
-  gap: var(--space-4);
-  padding: var(--space-4);
+  gap: var(--space-5);
+  padding: var(--space-5);
 }
 
 .titleRow {
@@ -50,7 +66,7 @@
 
 .region {
   margin: 0 0 var(--space-1);
-  color: var(--color-text-secondary);
+  color: var(--color-primary-700);
   font-size: var(--font-size-caption);
   font-weight: 600;
 }
@@ -58,7 +74,13 @@
 .title {
   margin: 0;
   font-size: var(--font-size-h2);
-  line-height: 1.4;
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+  word-break: keep-all;
+}
+
+.featured .title {
+  font-size: 1.5rem;
 }
 
 .tags {
@@ -70,22 +92,39 @@
 .tag {
   padding: 5px 9px;
   border-radius: var(--radius-pill);
-  color: var(--color-primary-800);
-  background: var(--color-primary-50);
+  color: var(--color-text-accent);
+  background: var(--color-primary-100);
   font-size: var(--font-size-caption);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .reasons h3 {
   margin: 0 0 var(--space-2);
-  font-size: var(--font-size-body);
+  font-size: 1.0625rem;
 }
 
 .reasons ul {
   display: grid;
-  gap: 6px;
+  gap: var(--space-2);
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
   color: var(--color-text-secondary);
   font-size: var(--font-size-caption);
+  list-style: none;
+}
+
+.reasons li {
+  position: relative;
+  padding-left: var(--space-4);
+}
+
+.reasons li::before {
+  position: absolute;
+  top: 0.65em;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent-coral);
+  content: '';
 }

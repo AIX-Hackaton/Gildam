@@ -44,11 +44,6 @@ export function HomePage() {
           <Button
             size="large"
             fullWidth
-            rightIcon={
-              <span className={styles.arrow} aria-hidden="true">
-                →
-              </span>
-            }
             onClick={() => navigate('/plan')}
           >
             내 여행 조건 입력하기
