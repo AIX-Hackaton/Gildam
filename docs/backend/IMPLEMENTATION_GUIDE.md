@@ -35,20 +35,24 @@ backend/
 │  └─ ranking.ts                취향별 추천 점수와 정렬
 ├─ app/                          FastAPI API 서버
 │  ├─ main.py                   FastAPI 앱과 route
-│  └─ courses/
+│  ├─ courses/
 │     ├─ data.py                MVP 코스 상세 seed data
 │     ├─ fatigue.py             상세 API 응답용 피로도 계산
 │     ├─ kakao_map.py           Kakao 지도 URL 생성
 │     ├─ models.py              API 응답 모델
 │     └─ service.py             상세 조회 조립 로직
+│  └─ recommendations/
+│     ├─ models.py              추천 목록 API 요청/응답 모델
+│     └─ service.py             추천 필터링과 순위 산정
 └─ tests/                        TypeScript, Python 테스트
 ```
 
-`src/recommendations/`는 추천 목록을 만들기 위한 엔진이다. 아직 추천 목록 API가
-붙지 않았더라도, 필터링과 점수화 규칙을 독립적으로 검증할 수 있게 만들었다.
+`src/recommendations/`는 추천 목록을 만들기 위한 엔진이다. 같은 규칙은
+FastAPI의 `backend/app/recommendations/`에도 반영되어 프론트 추천 결과 화면에서
+실제로 호출할 수 있다.
 
-`app/`은 실제 FastAPI 서버다. 현재 구현된 API는 코스 상세 조회이고, 상세 응답에
-자동 계산된 이동 피로도와 Kakao 지도 링크를 포함한다.
+`app/`은 실제 FastAPI 서버다. 현재 구현된 API는 추천 목록 조회와 코스 상세
+조회이고, 응답에 자동 계산된 이동 피로도와 Kakao 지도 링크를 포함한다.
 
 ## 3. 추천 흐름
 
@@ -167,7 +171,26 @@ mobilityScore = (3 - fatigueScore) / 2
 검증되지 않았기 때문에, 없는 근거를 추천 점수에 넣지 않는 것이 더 정직하고
 설명 가능하다.
 
-## 7. 추천 코스 상세 API
+## 7. 추천 목록 API와 추천 코스 상세 API
+
+추천 목록 API:
+
+```text
+POST /api/recommendations
+```
+
+요청으로 `departure`, `duration`, `preferences`를 받는다. 서버는 코스 seed data에
+추천 메타데이터를 붙여 출발지, 가능 시간, 귀가 가능성을 먼저 필터링하고, 남은
+후보에 이동 피로도와 취향별 추천 점수를 계산한다. 응답은 추천된 `courses`와
+제외된 코스의 사유를 담은 `exclusions`를 함께 반환한다.
+
+프론트 추천 결과 화면은 이 API를 호출한다.
+
+```text
+조건 선택 화면
+→ POST /api/recommendations
+→ 추천 목록 화면
+```
 
 파일:
 
@@ -300,6 +323,8 @@ node --experimental-strip-types --test backend/tests/*.test.ts
 검증 내용:
 
 - 정상 코스 상세 조회는 `200`을 반환한다.
+- 정상 추천 목록 조회는 `200`을 반환한다.
+- 추천 목록 응답은 필터링 후 순위가 계산된 `courses`를 포함한다.
 - 없는 코스는 `404`를 반환한다.
 - 상세 응답에 계산된 `fatigueLevel`, `fatigueScore`가 포함된다.
 - Kakao 장소 보기와 길찾기 링크가 올바른 URL 패턴으로 생성된다.
@@ -334,8 +359,6 @@ node --experimental-strip-types --test backend/tests/*.test.ts
 데이터가 들어오면 아래 작업을 하면 된다.
 
 - `backend/app/courses/data.py`를 실제 DB 또는 JSON 데이터 저장소로 교체
-- 추천 목록 API 추가: `POST /api/recommendations`
-- TypeScript 추천 엔진 규칙을 FastAPI route에서 호출할 수 있는 Python 서비스로 통합
 - Kakao 장소 ID가 확보되면 URL 정확도 개선
 - CI에서 Python 테스트와 Node 테스트를 함께 실행
 

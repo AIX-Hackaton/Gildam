@@ -47,6 +47,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/recommendations:
+    post:
+      summary: 추천 목록 조회
+      description: >
+        사용자의 출발지, 가능 시간, 취향을 기준으로 코스를 필터링하고
+        이동 피로도와 취향 점수를 계산해 추천 목록을 반환합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecommendationRequest"
+            example:
+              departure: GWANGJU_SONGJEONG
+              duration: FULL_DAY
+              preferences:
+                - NATURE_WALK
+                - FOOD_MARKET
+      responses:
+        "200":
+          description: Ranked recommendation list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendationResponse"
+        "422":
+          description: Invalid recommendation request.
 components:
   schemas:
     ErrorResponse:
@@ -57,6 +84,191 @@ components:
         detail:
           type: string
           example: Course not found.
+    RecommendationRequest:
+      type: object
+      required:
+        - departure
+        - duration
+        - preferences
+      properties:
+        departure:
+          type: string
+          enum:
+            - GWANGJU_SONGJEONG
+            - USQUARE
+        duration:
+          type: string
+          enum:
+            - SIX_HOURS
+            - FULL_DAY
+        preferences:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum:
+              - NATURE_WALK
+              - HISTORY_CULTURE
+              - FOOD_MARKET
+              - MEMORY
+    RecommendationResponse:
+      type: object
+      required:
+        - courses
+        - exclusions
+      properties:
+        courses:
+          type: array
+          items:
+            $ref: "#/components/schemas/CourseRecommendation"
+        exclusions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExcludedCourse"
+    CourseRecommendation:
+      allOf:
+        - $ref: "#/components/schemas/CourseSummary"
+        - type: object
+          required:
+            - fatigueScore
+            - roundTripTransitMinutes
+            - recommendationScore
+            - scoreBreakdown
+          properties:
+            fatigueScore:
+              type: number
+            roundTripTransitMinutes:
+              type: integer
+            recommendationScore:
+              type: number
+            scoreBreakdown:
+              $ref: "#/components/schemas/RecommendationScoreBreakdown"
+    CourseSummary:
+      type: object
+      required:
+        - id
+        - title
+        - region
+        - thumbnailUrl
+        - tags
+        - fatigueLevel
+        - durationMinutes
+        - walkingMinutes
+        - transferCount
+        - recommendationReasons
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        region:
+          type: string
+        thumbnailUrl:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        fatigueLevel:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+        durationMinutes:
+          type: integer
+        walkingMinutes:
+          type: integer
+        transferCount:
+          type: integer
+        recommendationReasons:
+          type: array
+          items:
+            type: string
+    RecommendationScoreBreakdown:
+      type: object
+      required:
+        - preferenceMatch
+        - mobility
+        - localResource
+        - recordFit
+      properties:
+        preferenceMatch:
+          $ref: "#/components/schemas/PreferenceMatchScoreFactor"
+        mobility:
+          $ref: "#/components/schemas/MobilityScoreFactor"
+        localResource:
+          $ref: "#/components/schemas/RecommendationScoreFactor"
+        recordFit:
+          $ref: "#/components/schemas/RecommendationScoreFactor"
+    RecommendationScoreFactor:
+      type: object
+      required:
+        - score
+        - weight
+        - weightedScore
+      properties:
+        score:
+          type: number
+        weight:
+          type: number
+        weightedScore:
+          type: number
+    PreferenceMatchScoreFactor:
+      allOf:
+        - $ref: "#/components/schemas/RecommendationScoreFactor"
+        - type: object
+          required:
+            - matchedCount
+            - selectedCount
+            - matchedPreferences
+          properties:
+            matchedCount:
+              type: integer
+            selectedCount:
+              type: integer
+            matchedPreferences:
+              type: array
+              items:
+                type: string
+    MobilityScoreFactor:
+      allOf:
+        - $ref: "#/components/schemas/RecommendationScoreFactor"
+        - type: object
+          required:
+            - fatigueScore
+          properties:
+            fatigueScore:
+              type: number
+    ExcludedCourse:
+      type: object
+      required:
+        - id
+        - title
+        - reasons
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        reasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExclusionReason"
+    ExclusionReason:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - UNSUPPORTED_DEPARTURE
+            - TIME_LIMIT_EXCEEDED
+            - RETURN_NOT_FEASIBLE
+        message:
+          type: string
     CourseDetail:
       type: object
       required:

@@ -1,5 +1,28 @@
 export type FatigueLevel = 'LOW' | 'MEDIUM' | 'HIGH'
 
+export interface RecommendationScoreFactor {
+  score: number
+  weight: number
+  weightedScore: number
+}
+
+export interface PreferenceMatchScoreFactor extends RecommendationScoreFactor {
+  matchedCount: number
+  selectedCount: number
+  matchedPreferences: string[]
+}
+
+export interface MobilityScoreFactor extends RecommendationScoreFactor {
+  fatigueScore: number
+}
+
+export interface RecommendationScoreBreakdown {
+  preferenceMatch: PreferenceMatchScoreFactor
+  mobility: MobilityScoreFactor
+  localResource: RecommendationScoreFactor
+  recordFit: RecommendationScoreFactor
+}
+
 export interface CourseSummary {
   id: string
   title: string
@@ -7,10 +30,14 @@ export interface CourseSummary {
   thumbnailUrl: string
   tags: string[]
   fatigueLevel: FatigueLevel
+  fatigueScore?: number
   durationMinutes: number
   walkingMinutes: number
   transferCount: number
+  roundTripTransitMinutes?: number
   recommendationReasons: string[]
+  recommendationScore?: number
+  scoreBreakdown?: RecommendationScoreBreakdown
 }
 
 export interface ItineraryItem {
@@ -36,12 +63,21 @@ export interface LocalPoint {
   tags?: string[]
 }
 
+export interface CourseDestination {
+  name: string
+  latitude: number
+  longitude: number
+}
+
 export interface Course extends CourseSummary {
   description: string
   itinerary: ItineraryItem[]
   localFood: LocalFood[]
   localPoints: LocalPoint[]
   scenePrompts: string[]
+  primaryDestination?: CourseDestination
   mapUrl: string
   directionsUrl: string
+  kakaoMapUrl?: string
+  kakaoDirectionsUrl?: string
 }
