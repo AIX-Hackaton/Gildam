@@ -24,7 +24,7 @@
 .large {
   min-height: 56px;
   padding: 0 var(--space-5);
-  font-size: var(--font-size-title);
+  font-size: var(--font-size-body);
 }
 
 .primary {

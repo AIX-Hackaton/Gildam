@@ -93,9 +93,9 @@
   padding: 5px 9px;
   border-radius: var(--radius-pill);
   color: var(--color-text-accent);
-  background: var(--color-primary-300);
+  background: var(--color-primary-100);
   font-size: var(--font-size-caption);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .reasons h3 {

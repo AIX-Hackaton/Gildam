@@ -9,7 +9,7 @@
   margin: 0;
   font-size: var(--font-size-display);
   line-height: 1.24;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   word-break: keep-all;
 }
 
@@ -50,9 +50,9 @@
   padding: 6px 10px;
   border-radius: var(--radius-pill);
   color: var(--color-text-accent);
-  background: var(--color-primary-300);
+  background: var(--color-primary-100);
   font-size: var(--font-size-caption);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .alternatives {

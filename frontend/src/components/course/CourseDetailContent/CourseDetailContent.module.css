@@ -26,7 +26,7 @@
   margin-top: var(--space-2);
   font-size: var(--font-size-display);
   line-height: 1.3;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.025em;
 }
 
 .description {
@@ -47,9 +47,9 @@
   padding: 5px 9px;
   border-radius: var(--radius-pill);
   color: var(--color-text-accent);
-  background: var(--color-primary-300);
+  background: var(--color-primary-100);
   font-size: var(--font-size-caption);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .section {
