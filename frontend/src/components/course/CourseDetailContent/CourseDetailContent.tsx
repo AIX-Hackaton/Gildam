@@ -15,6 +15,9 @@ function openExternalUrl(url: string) {
 }
 
 export function CourseDetailContent({ course }: CourseDetailContentProps) {
+  const mapUrl = course.kakaoMapUrl ?? course.mapUrl
+  const directionsUrl = course.kakaoDirectionsUrl ?? course.directionsUrl
+
   return (
     <>
       <main className={`page-content ${styles.main}`}>
@@ -83,13 +86,13 @@ export function CourseDetailContent({ course }: CourseDetailContentProps) {
         <Button
           type="button"
           variant="secondary"
-          onClick={() => openExternalUrl(course.mapUrl)}
+          onClick={() => openExternalUrl(mapUrl)}
         >
           지도에서 보기
         </Button>
         <Button
           type="button"
-          onClick={() => openExternalUrl(course.directionsUrl)}
+          onClick={() => openExternalUrl(directionsUrl)}
         >
           길찾기 열기
         </Button>

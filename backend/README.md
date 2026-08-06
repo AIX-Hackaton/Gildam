@@ -11,14 +11,14 @@
 
 ```bash
 python -m pip install -r backend/requirements.txt
-python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
 ```
 
 확인 URL:
 
-- `http://127.0.0.1:8000/health`
-- `http://127.0.0.1:8000/api/courses/damyang-slow-walk`
-- `http://127.0.0.1:8000/docs`
+- `http://127.0.0.1:8001/health`
+- `http://127.0.0.1:8001/api/courses/damyang-slow-walk`
+- `http://127.0.0.1:8001/docs`
 
 ## Tests
 
@@ -32,6 +32,7 @@ python -m unittest discover -s backend/tests -p "test_*.py"
 - 시간 초과, 출발지 불일치, 귀가 불가 코스 필터링
 - 이동 피로도 계산
 - 취향 기반 추천 순위 산정
+- 추천 목록 API
 - 코스 상세 API
 - Kakao 지도 장소 보기와 길찾기 링크 생성
 
@@ -67,18 +68,43 @@ curl http://127.0.0.1:8000/api/courses/damyang-slow-walk
   `scenePrompts`
 - 지도 연결: `mapUrl`, `directionsUrl`, `kakaoMapUrl`, `kakaoDirectionsUrl`
 
+### `POST /api/recommendations`
+
+사용자의 출발지, 가능 시간, 취향을 받아 추천 목록을 반환한다.
+
+예시:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/recommendations \
+  -H "Content-Type: application/json" \
+  -d "{\"departure\":\"GWANGJU_SONGJEONG\",\"duration\":\"FULL_DAY\",\"preferences\":[\"NATURE_WALK\"]}"
+```
+
+요청값:
+
+- `departure`: `GWANGJU_SONGJEONG` 또는 `USQUARE`
+- `duration`: `SIX_HOURS` 또는 `FULL_DAY`
+- `preferences`: `NATURE_WALK`, `HISTORY_CULTURE`, `FOOD_MARKET`, `MEMORY`
+
+응답에는 추천된 `courses`와 필터에서 제외된 `exclusions`가 포함된다. 추천 코스는
+이동 피로도와 설명 가능한 점수(`recommendationScore`, `scoreBreakdown`)를 함께
+제공한다.
+
 ## Structure
 
 ```text
 backend/
 ├─ app/                         FastAPI API 서버
 │  ├─ main.py                   앱 생성, health, course detail route
-│  └─ courses/
+│  ├─ courses/
 │     ├─ data.py                MVP seed course detail data
 │     ├─ fatigue.py             상세 API 응답용 피로도 계산
 │     ├─ kakao_map.py           Kakao 지도 URL 생성
 │     ├─ models.py              Pydantic response models
 │     └─ service.py             course_id 조회와 응답 조립
+│  └─ recommendations/
+│     ├─ models.py              추천 목록 API 요청/응답 모델
+│     └─ service.py             필터링, 피로도 계산, 순위 산정
 ├─ src/recommendations/          추천 엔진 순수 로직
 │  ├─ fatigue.ts                이동 피로도 계산
 │  ├─ candidate.ts              코스 후보에 피로도 필드 자동 부착

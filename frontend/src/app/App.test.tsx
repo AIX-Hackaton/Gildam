@@ -1,14 +1,22 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App.tsx'
 import { TravelConditionsProvider } from '../contexts/TravelConditionsProvider.tsx'
 
 describe('App', () => {
+  const fetchMock = vi.fn<typeof fetch>()
+
   beforeEach(() => {
     sessionStorage.clear()
+    fetchMock.mockReset()
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   it('renders the home message', () => {
@@ -60,6 +68,30 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '자연·산책' }))
 
     expect(submitButton).toBeEnabled()
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          courses: [
+            {
+              id: 'damyang-slow-walk',
+              title: '담양 느린 산책 코스',
+              region: '담양',
+              thumbnailUrl: '/images/course-damyang.svg',
+              tags: ['자연·산책', '감성기록', '음식'],
+              fatigueLevel: 'MEDIUM',
+              durationMinutes: 360,
+              walkingMinutes: 24,
+              transferCount: 1,
+              recommendationReasons: [
+                '자연·산책 취향과 주요 장소가 잘 맞아요.',
+              ],
+            },
+          ],
+          exclusions: [],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    )
     await user.click(submitButton)
 
     expect(
