@@ -12,3 +12,7 @@ export function formatDuration(minutes: number) {
 
   return remainingMinutes ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`
 }
+
+export function formatCompactLabel(label: string) {
+  return label.replaceAll('·', '')
+}

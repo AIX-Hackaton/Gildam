@@ -1,58 +1,39 @@
 .intro {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
+  display: block;
 }
 
 .intro h1 {
   margin: 0;
-  font-size: var(--font-size-display);
-  line-height: 1.24;
-  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: normal;
+  letter-spacing: -0.025em;
   word-break: keep-all;
 }
 
-.intro p {
-  margin: var(--space-3) 0 0;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-body);
-}
-
-.changeButton {
-  flex: 0 0 auto;
-  min-height: 44px;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-primary-800);
-  background: var(--color-surface);
-  font-size: var(--font-size-caption);
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease;
-}
-
-.changeButton:hover {
-  background: var(--color-surface-subtle);
-  border-color: var(--color-primary-300);
+.intro h1 span {
+  display: block;
 }
 
 .conditionChips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: 4px;
+  margin-top: -3px;
+  margin-bottom: -1px;
 }
 
 .conditionChips span {
-  padding: 6px 10px;
+  padding: 8px 10px;
   border-radius: var(--radius-pill);
-  color: var(--color-text-accent);
-  background: var(--color-primary-100);
-  font-size: var(--font-size-caption);
-  font-weight: 500;
+  color: var(--color-recommendation-chip-text);
+  background: var(--color-recommendation-chip);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: -0.025em;
 }
 
 .alternatives {
@@ -74,7 +55,9 @@
 }
 
 .sectionHeading h2 {
-  font-size: var(--font-size-h2);
+  font-family: var(--font-family-base);
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .sectionHeading p {
@@ -87,12 +70,8 @@
   gap: var(--space-5);
 }
 
-@media (max-width: 359px) {
-  .intro {
-    display: grid;
-  }
-
-  .changeButton {
-    justify-self: start;
+@media (max-width: 319px) {
+  .intro h1 {
+    font-size: 1.625rem;
   }
 }

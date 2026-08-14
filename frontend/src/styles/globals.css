@@ -10,6 +10,12 @@ body {
   min-height: 100dvh;
 }
 
+h1,
+h2 {
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+}
+
 button,
 a {
   min-height: 44px;

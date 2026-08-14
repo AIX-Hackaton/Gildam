@@ -63,8 +63,8 @@
 | `--color-brand-700` | `#17624E` | Primary CTA, 선택 상태, 핵심 강조 |
 | `--color-brand-800` | `#10483B` | 버튼 pressed 상태, 진한 브랜드 텍스트 |
 | `--color-brand-100` | `#DCEDE6` | 선택 보조 배경, 경로선의 옅은 표현 |
-| `--color-background` | `#FBF7EE` | 앱 기본 배경 |
-| `--color-surface` | `#FFFDF8` | 카드와 주요 콘텐츠 표면 |
+| `--color-background` | `#FFFFFF` | 앱 기본 배경 |
+| `--color-surface` | `#FBF7EE` | 카드와 주요 콘텐츠 표면 |
 | `--color-accent-coral` | `#E67855` | 추천 도장, 경로 노드, 작은 강조 |
 | `--color-accent-mustard` | `#D5A23C` | 지역 음식, 기록 영역의 보조 포인트 |
 | `--color-text-primary` | `#202522` | 제목과 본문 |
@@ -81,18 +81,19 @@
 
 ## 5. 타이포그래피
 
-기본 서체는 Pretendard를 사용한다. 여러 서체를 섞기보다 굵기와 크기로 정보 위계를 만든다.
+본문과 조작 요소는 Pretendard를 사용하고, 브랜드명과 주요 제목에는 Maru Buri를 사용한다. 부리 계열 서체는 H1·H2까지만 제한해 감성적인 인상을 만들고, 이동 정보와 선택 UI의 가독성은 산세리프로 유지한다.
 
 | 역할 | 크기 / 줄높이 | 굵기 | 사용 예시 |
 |---|---|---:|---|
-| Display | 32px / 40px | 700 | 홈 핵심 문장 |
-| Page title | 26px / 34px | 700 | 어떤 여행을 떠나볼까요? |
-| Section title | 20px / 28px | 700 | 추천 이유, 코스 순서 |
-| Emphasized metric | 18–20px / 26px | 700 | 6시간, 24분, 1회 |
+| Display | 30–34px / 42px | 700 | 홈 핵심 문장 |
+| Page title | 28px / 38px | 700 | 어떤 여행을 떠나볼까요? |
+| Section title | 18px / 26px | 700 | 추천 이유, 코스 순서 |
+| Emphasized metric | 17–18px / 26px | 700 | 6시간, 24분, 1회 |
 | Body | 16px / 25px | 400 | 설명과 추천 이유 |
 | Label | 14px / 20px | 500–600 | 지역, 입력 그룹, 보조 정보 |
 
 - 의미 있는 정보는 14px보다 작게 만들지 않는다.
+- Maru Buri는 브랜드명과 H1·H2에만 사용하고 버튼, 지표, 본문에는 사용하지 않는다.
 - 한 화면에서 경쟁하는 글자 크기를 늘리지 않는다.
 - 제목은 짧고 굵게, 설명은 친절하고 담백하게 작성한다.
 - 숫자는 주변 레이블보다 크고 굵게 표현해 빠르게 비교할 수 있게 한다.

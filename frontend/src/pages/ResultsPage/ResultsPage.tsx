@@ -24,6 +24,8 @@ export function ResultsPage() {
     <AppShell>
       <PageHeader
         title="추천 결과"
+        visuallyHiddenTitle
+        backAlignedToContent
         showBack
         onBack={() => navigate('/plan')}
       />
@@ -42,7 +44,6 @@ export function ResultsPage() {
           <ResultsContent
             conditions={conditions}
             courses={courses}
-            onChangeConditions={() => navigate('/plan')}
             onOpenCourse={(courseId) => navigate(`/courses/${courseId}`)}
           />
         )}

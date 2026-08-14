@@ -1,61 +1,36 @@
 .card {
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  background: var(--color-surface);
+  border: 0;
+  border-radius: 30px;
+  background: var(--color-background);
+  box-shadow: var(--shadow-recommendation-card);
 }
 
 .featured {
-  border-color: rgb(115 159 60 / 24%);
-  box-shadow: var(--shadow-card);
+  min-height: 577px;
+  box-shadow: var(--shadow-recommendation-card);
 }
 
 .imageWrap {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
+  height: 213px;
   background: var(--color-surface-subtle);
 }
 
 .image {
-  width: 100%;
-  height: 100%;
+  width: calc(100% + 100px);
+  height: calc(100% + 40px);
+  max-width: none;
+  margin-left: -30px;
   object-fit: cover;
-}
-
-.rankBadge {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
-  display: grid;
-  min-width: 82px;
-  padding: 9px 12px 8px;
-  border: 2px solid var(--color-accent-coral);
-  border-radius: 10px;
-  color: #b94f32;
-  background: rgb(255 253 248 / 96%);
-  box-shadow:
-    inset 0 0 0 3px var(--color-surface),
-    inset 0 0 0 4px rgb(230 120 85 / 72%);
-  font-size: 0.75rem;
-  font-weight: 800;
-  line-height: 1.2;
-  text-align: center;
-  letter-spacing: -0.02em;
-  transform: rotate(-5deg);
-}
-
-.rankBrand {
-  margin-bottom: 3px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  object-position: center top;
 }
 
 .content {
   display: grid;
-  gap: var(--space-5);
-  padding: var(--space-5);
+  gap: var(--space-6);
+  padding: var(--space-4);
 }
 
 .titleRow {
@@ -64,43 +39,45 @@
   gap: var(--space-3);
 }
 
-.region {
-  margin: 0 0 var(--space-1);
-  color: var(--color-primary-700);
-  font-size: var(--font-size-caption);
-  font-weight: 600;
-}
-
 .title {
   margin: 0;
-  font-size: var(--font-size-h2);
-  line-height: 1.35;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: normal;
   letter-spacing: -0.025em;
   word-break: keep-all;
 }
 
 .featured .title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .tag {
-  padding: 5px 9px;
+  padding: 8px 10px;
   border-radius: var(--radius-pill);
-  color: var(--color-text-accent);
-  background: var(--color-primary-100);
-  font-size: var(--font-size-caption);
-  font-weight: 500;
+  color: var(--color-recommendation-chip-text);
+  background: var(--color-recommendation-chip);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: -0.025em;
 }
 
 .reasons h3 {
-  margin: 0 0 var(--space-2);
-  font-size: 1.0625rem;
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: -0.025em;
 }
 
 .reasons ul {
@@ -108,23 +85,47 @@
   gap: var(--space-2);
   margin: 0;
   padding: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-caption);
+  color: #706661;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: -0.025em;
   list-style: none;
 }
 
 .reasons li {
-  position: relative;
-  padding-left: var(--space-4);
+  min-width: 0;
 }
 
-.reasons li::before {
+.card .cta {
+  position: relative;
+  min-height: 40px;
+  height: 40px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: #fff;
+  background: linear-gradient(180deg, #8ab43a 0%, #84ac34 100%);
+  box-shadow:
+    inset 0 -4px 20px rgb(18 164 79 / 20%),
+    0 0 8px rgb(0 0 0 / 15%);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.card .cta::after {
   position: absolute;
-  top: 0.65em;
-  left: 2px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent-coral);
+  inset: -2px 0;
   content: '';
+}
+
+.featured .cta {
+  margin-top: 6px;
+}
+
+.card .cta:hover:not(:disabled) {
+  background: linear-gradient(180deg, #8fba3e 0%, #87aa37 100%);
+  box-shadow:
+    inset 0 -4px 20px rgb(18 164 79 / 24%),
+    0 0 10px rgb(0 0 0 / 18%);
 }
