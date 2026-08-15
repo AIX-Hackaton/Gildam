@@ -1,0 +1,59 @@
+.evidence {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f6f9fc;
+  border: 1px solid #ddebf7;
+}
+
+.evidence h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.evidence h3 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: #2f6b9a;
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+.block {
+  display: grid;
+}
+
+.checkList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 0.83rem;
+  line-height: 1.55;
+}
+
+.sourceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 0.83rem;
+}
+
+.sourceList li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+}
+
+.sourceList span {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #64748b);
+}

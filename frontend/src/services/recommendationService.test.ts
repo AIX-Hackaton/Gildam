@@ -1,10 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { TravelConditions } from '../types/travelConditions.ts'
+import { ApiError } from './apiClient.ts'
 import { getCourseById, getRecommendations } from './recommendationService.ts'
 
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+const completeConditions: TravelConditions = {
+  departure: 'USQUARE',
+  duration: 'SIX_HOURS',
+  preferences: ['HISTORY_CULTURE', 'FOOD_MARKET'],
+  mobility: 'MIN_TRANSFER',
+}
+
 describe('recommendationService', () => {
-  const fetchMock = vi.fn<typeof fetch>()
+  const fetchMock = vi.fn()
 
   beforeEach(() => {
     fetchMock.mockReset()
@@ -15,131 +30,132 @@ describe('recommendationService', () => {
     vi.unstubAllGlobals()
   })
 
-  it('returns no recommendations when required conditions are missing', async () => {
+  it('필수 조건이 비어 있으면 API를 호출하지 않는다', async () => {
     const conditions: TravelConditions = {
       departure: null,
       duration: 'FULL_DAY',
       preferences: ['NATURE_WALK'],
+      mobility: 'ANY',
     }
 
-    await expect(getRecommendations(conditions)).resolves.toEqual([])
+    await expect(getRecommendations(conditions)).resolves.toEqual({
+      courses: [],
+      exclusions: [],
+      suggestions: [],
+    })
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('returns recommendations from the backend API', async () => {
+  it('취향을 하나도 고르지 않으면 API를 호출하지 않는다', async () => {
+    await expect(
+      getRecommendations({ ...completeConditions, preferences: [] }),
+    ).resolves.toEqual({ courses: [], exclusions: [], suggestions: [] })
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('이동 부담 조건을 요청 본문에 함께 보낸다', async () => {
     fetchMock.mockResolvedValueOnce(
-      new Response(
-        JSON.stringify({
-          courses: [
-            {
-              id: 'naju-history-walk',
-              title: '나주 읍성 시간여행 코스',
-              region: '나주',
-              thumbnailUrl: '/images/course-naju.svg',
-              tags: ['역사·문화', '음식·시장'],
-              fatigueLevel: 'LOW',
-              durationMinutes: 340,
-              walkingMinutes: 20,
-              transferCount: 0,
-              recommendationReasons: [
-                '환승 없이 나주 원도심을 둘러볼 수 있어요.',
-              ],
-            },
-            {
-              id: 'mokpo-port-culture',
-              title: '목포 항구 문화 코스',
-              region: '목포',
-              thumbnailUrl: '/images/course-mokpo.svg',
-              tags: ['역사·문화', '음식·시장', '감성기록'],
-              fatigueLevel: 'MEDIUM',
-              durationMinutes: 480,
-              walkingMinutes: 32,
-              transferCount: 1,
-              recommendationReasons: [
-                '근대문화 거리와 항구 풍경을 함께 만나요.',
-              ],
-            },
-          ],
-          exclusions: [],
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } },
-      ),
+      jsonResponse({ courses: [], exclusions: [], suggestions: [] }),
     )
-    const conditions: TravelConditions = {
-      departure: 'GWANGJU_SONGJEONG',
-      duration: 'FULL_DAY',
-      preferences: ['HISTORY_CULTURE', 'FOOD_MARKET', 'MEMORY'],
-    }
 
-    const courses = await getRecommendations(conditions)
+    await getRecommendations(completeConditions)
 
-    expect(courses.map((course) => course.id)).toEqual([
-      'naju-history-walk',
-      'mokpo-port-culture',
-    ])
-    expect(fetchMock).toHaveBeenCalledWith('/api/recommendations', {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(conditions),
+    const init = fetchMock.mock.calls[0][1] as RequestInit
+    expect(JSON.parse(String(init.body))).toEqual({
+      departure: 'USQUARE',
+      duration: 'SIX_HOURS',
+      preferences: ['HISTORY_CULTURE', 'FOOD_MARKET'],
+      mobility: 'MIN_TRANSFER',
     })
   })
 
-  it('returns complete details from the backend API', async () => {
+  it('추천 코스와 제외 사유, 대안 제안을 함께 반환한다', async () => {
     fetchMock.mockResolvedValueOnce(
-      new Response(
-        JSON.stringify({
-          id: 'damyang-slow-walk',
-          title: '담양 느린 산책 코스',
-          region: '담양',
-          thumbnailUrl: '/images/course-damyang.svg',
-          tags: ['자연·산책', '감성기록', '음식'],
-          fatigueLevel: 'MEDIUM',
-          fatigueScore: 2,
-          durationMinutes: 360,
-          walkingMinutes: 24,
-          transferCount: 1,
-          roundTripTransitMinutes: 130,
-          recommendationReasons: ['자연·산책 취향과 주요 장소가 잘 맞아요.'],
-          description:
-            '천천히 걷고, 담양의 자연과 골목을 오롯이 느낄 수 있는 코스예요.',
-          itinerary: [],
-          localFood: [],
-          localPoints: [],
-          scenePrompts: [],
-          primaryDestination: {
-            name: '담양 관방제림',
-            latitude: 35.3216,
-            longitude: 126.9865,
+      jsonResponse({
+        courses: [
+          {
+            id: 'NJ_LOW_01',
+            title: '나주 읍성·곰탕 저환승 코스',
+            region: '나주',
           },
-          mapUrl:
-            'https://map.kakao.com/link/map/%EB%8B%B4%EC%96%91%20%EA%B4%80%EB%B0%A9%EC%A0%9C%EB%A6%BC,35.3216,126.9865',
-          directionsUrl:
-            'https://map.kakao.com/link/to/%EB%8B%B4%EC%96%91%20%EA%B4%80%EB%B0%A9%EC%A0%9C%EB%A6%BC,35.3216,126.9865',
-          kakaoMapUrl:
-            'https://map.kakao.com/link/map/%EB%8B%B4%EC%96%91%20%EA%B4%80%EB%B0%A9%EC%A0%9C%EB%A6%BC,35.3216,126.9865',
-          kakaoDirectionsUrl:
-            'https://map.kakao.com/link/to/%EB%8B%B4%EC%96%91%20%EA%B4%80%EB%B0%A9%EC%A0%9C%EB%A6%BC,35.3216,126.9865',
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ],
+        exclusions: [
+          {
+            id: 'MP_NORMAL_01',
+            title: '목포 갓바위·자연사 문화 코스',
+            reasons: [
+              { code: 'BLOCKED_BY_EXPOSURE_POLICY', message: '노출 제외 코스입니다.' },
+            ],
+          },
+        ],
+        suggestions: [
+          {
+            code: 'RELAX_DURATION',
+            message: '하루 종일로 바꾸면 2개를 볼 수 있어요.',
+            availableCount: 2,
+          },
+        ],
+        meta: { dataSnapshotDate: '2026-08-06' },
+      }),
+    )
+
+    const result = await getRecommendations(completeConditions)
+
+    expect(result.courses).toHaveLength(1)
+    expect(result.courses[0]?.id).toBe('NJ_LOW_01')
+    expect(result.exclusions[0]?.id).toBe('MP_NORMAL_01')
+    expect(result.suggestions[0]?.code).toBe('RELAX_DURATION')
+    expect(result.meta?.dataSnapshotDate).toBe('2026-08-06')
+  })
+
+  it('exclusions·suggestions가 없는 응답도 안전하게 처리한다', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ courses: [] }))
+
+    const result = await getRecommendations(completeConditions)
+
+    expect(result.exclusions).toEqual([])
+    expect(result.suggestions).toEqual([])
+  })
+
+  it('서버 오류는 코드와 메시지를 보존한 ApiError로 전달한다', async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        { code: 'SERVER_ERROR', message: '일시적인 오류가 발생했습니다.' },
+        500,
       ),
     )
 
-    const course = await getCourseById('damyang-slow-walk')
+    await expect(getRecommendations(completeConditions)).rejects.toBeInstanceOf(
+      ApiError,
+    )
+  })
 
-    expect(course).toMatchObject({
-      id: 'damyang-slow-walk',
-      title: '담양 느린 산책 코스',
-      kakaoMapUrl:
-        'https://map.kakao.com/link/map/%EB%8B%B4%EC%96%91%20%EA%B4%80%EB%B0%A9%EC%A0%9C%EB%A6%BC,35.3216,126.9865',
-    })
-    expect(fetchMock).toHaveBeenCalledWith('/api/courses/damyang-slow-walk', {
-      headers: { Accept: 'application/json' },
+  it('네트워크 실패는 NETWORK_ERROR로 변환한다', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    await expect(getRecommendations(completeConditions)).rejects.toMatchObject({
+      code: 'NETWORK_ERROR',
     })
   })
 
-  it('returns null when the backend API returns 404', async () => {
-    fetchMock.mockResolvedValueOnce(new Response(null, { status: 404 }))
+  it('노출되지 않는 코스는 null을 반환한다', async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        { code: 'NOT_FOUND', message: '요청한 코스를 찾을 수 없습니다.' },
+        404,
+      ),
+    )
 
-    await expect(getCourseById('unknown-course')).resolves.toBeNull()
+    await expect(getCourseById('MP_NORMAL_01')).resolves.toBeNull()
+  })
+
+  it('선택한 시간 조건을 상세 조회에 함께 전달한다', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ id: 'NJ_LOW_01' }))
+
+    await getCourseById('NJ_LOW_01', 'SIX_HOURS')
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      '/api/courses/NJ_LOW_01?duration=SIX_HOURS',
+    )
   })
 })

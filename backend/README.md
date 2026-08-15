@@ -1,11 +1,12 @@
 # Backend
 
-길담 백엔드는 검증된 코스 데이터를 기반으로 추천 후보를 걸러내고, 이동 피로도와
-추천 순위를 계산하며, 코스 상세 정보와 Kakao 지도 링크를 제공한다.
+길담 백엔드는 **검증된 코스 데이터(schema v3.1)**를 원천으로, 조건에 맞는 코스를 걸러내고
+귀가 가능성을 검증하며, 왜 그 코스를 추천했는지 설명 가능한 형태로 반환합니다.
 
-현재 API 서버는 FastAPI로 구현되어 있다. 추천 계산 로직은 프레임워크와 분리된
-순수 함수로 두어, 추후 DB나 실제 API가 붙어도 계산 규칙을 그대로 재사용할 수
-있게 했다.
+FastAPI로 구현되어 있고, 계산 규칙(피로도·귀가 가능성·노출 정책)은 프레임워크와 분리된
+순수 함수로 두어 DB나 실제 API가 붙어도 그대로 재사용할 수 있습니다.
+
+데이터가 어디서 왔고 어떤 규칙으로 검증되는지는 [`docs/DATA_INTEGRATION.md`](../docs/DATA_INTEGRATION.md)를 참고하세요.
 
 ## Quick Start
 
@@ -16,198 +17,205 @@ python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
 
 확인 URL:
 
-- `http://127.0.0.1:8001/health`
-- `http://127.0.0.1:8001/api/courses/damyang-slow-walk`
+- `http://127.0.0.1:8001/health` — 서버 상태 + 데이터 정합성 요약
+- `http://127.0.0.1:8001/api/meta/conditions` — 조건 선택지 정의
+- `http://127.0.0.1:8001/api/courses/NJ_LOW_01`
 - `http://127.0.0.1:8001/docs`
+
+### 환경 변수
+
+| 변수 | 기본값 | 설명 |
+|---|---|---|
+| `GILDAM_EXPOSURE_MODE` | `INTERNAL` | `PUBLIC`이면 `DEMO_ONLY` 코스도 숨깁니다. `BLOCKED`는 어느 모드에서도 노출되지 않습니다. |
+| `GILDAM_ALLOWED_ORIGINS` | `http://localhost:5173` | 쉼표로 구분한 CORS 허용 오리진 |
+| `GILDAM_DEMO_FAILURE` | (없음) | `1`이면 `?simulate=server_error\|not_found` 장애 주입 활성화 (시연용) |
 
 ## Tests
 
 ```bash
-node --experimental-strip-types --test backend/tests/*.test.ts
-python -m unittest discover -s backend/tests -p "test_*.py"
+python -m backend.app.courses.schema                                   # 데이터 정합성
+python -m unittest discover -s backend/tests -t . -p "test_*.py"       # 전체 테스트
+python scripts/export_openapi.py --check                               # 명세 동기화 확인
 ```
 
-현재 검증 범위:
+검증 범위:
 
-- 시간 초과, 출발지 불일치, 귀가 불가 코스 필터링
-- 이동 피로도 계산
-- 취향 기반 추천 순위 산정
-- 추천 목록 API
-- 코스 상세 API
-- Kakao 지도 장소 보기와 길찾기 링크 생성
+- 대표 시나리오 추천 순위
+- 조건 조합 전수 테스트로 `BLOCKED` 코스 비노출 보장
+- 귀가 가능성 판정(막차 미확인 = 추천 제외)
+- 이동 부담(mobility) 필터 반응성
+- 스키마 위반 코스가 앱을 죽이지 않고 조용히 제외되는지
+- 결과 없음일 때 실제로 가능한 대안 개수 산출
+- 오류 응답 규격(`code`/`message`)과 장애 주입
 
 ## API
 
 ### `GET /health`
 
-서버 상태 확인용 엔드포인트다.
+서버 상태와 함께 **데이터 정합성 요약**을 반환합니다. 배포 후 데이터가 깨졌는지
+바로 확인할 수 있게 하기 위한 것입니다.
 
 ```json
 {
-  "status": "ok"
+  "status": "ok",
+  "dataSnapshotDate": "2026-08-06",
+  "schemaVersion": "3.1",
+  "courseCount": 7,
+  "schemaInvalidCount": 0,
+  "blockedCourseIds": ["MP_NORMAL_01"],
+  "fatigueMismatches": [...]
 }
 ```
 
+`fatigueMismatches`는 계산된 피로도와 스프레드시트 표기값이 다른 코스입니다.
+숨기지 않고 드러내며, 값 자체는 **더 보수적인 쪽**을 채택합니다.
+
+### `GET /api/meta/conditions`
+
+조건 선택지(출발지·시간·취향·이동 부담)의 단일 정의입니다. 프론트엔드 하드코딩이
+백엔드와 어긋나는 것을 막습니다.
+
 ### `GET /api/courses/{course_id}`
 
-추천 코스 상세 정보를 조회한다. 없는 코스 ID는 `404`를 반환한다.
-
-예시:
+코스 상세를 조회합니다. `?duration=SIX_HOURS|FULL_DAY`를 주면 그 조건 기준으로
+귀가 가능성을 다시 판정합니다.
 
 ```bash
-curl http://127.0.0.1:8000/api/courses/damyang-slow-walk
+curl "http://127.0.0.1:8001/api/courses/NJ_LOW_01?duration=SIX_HOURS"
 ```
 
-응답에는 다음 정보가 포함된다.
+없는 코스와 **노출 등급이 `BLOCKED`인 코스는 모두 `404`**입니다. 직접 URL을 알아도
+접근할 수 없습니다.
 
-- 코스 기본 정보: `id`, `title`, `region`, `thumbnailUrl`, `tags`
+응답 주요 필드:
+
+- 기본 정보: `id`, `schemaVersion`, `title`, `region`, `tags`
 - 이동 정보: `durationMinutes`, `walkingMinutes`, `transferCount`,
-  `roundTripTransitMinutes`
-- 자동 계산된 피로도: `fatigueLevel`, `fatigueScore`
-- 상세 콘텐츠: `description`, `itinerary`, `localFood`, `localPoints`,
-  `scenePrompts`
-- 지도 연결: `mapUrl`, `directionsUrl`, `kakaoMapUrl`, `kakaoDirectionsUrl`
+  `totalMinutesRange`, `walkingMinutesRange`
+- 피로도: `fatigueLevel`, `fatigueScore`, `fatigueExplanation`(요소별 기여도·임계값·산식)
+- 귀가 가능성: `returnFeasibility`(상태, 신뢰도, 허용 시간, 최악값, 여유 시간, 막차)
+- 데이터 근거: `verificationStatus`, `verifiedAt`, `manualChecks`, `cautions`, `sources`
+- 지도: `kakaoMapUrl`, `kakaoDirectionsUrl`, `routeLinks`(구간별 링크 배열)
+- 콘텐츠: `description`, `itinerary`, `localFood`, `localPoints`, `scenePrompts`
+- 노출 안내: `exposureNotice`(내부 검토 중인 코스일 때만)
 
 ### `POST /api/recommendations`
 
-사용자의 출발지, 가능 시간, 취향을 받아 추천 목록을 반환한다.
-
-예시:
-
 ```bash
-curl -X POST http://127.0.0.1:8000/api/recommendations \
+curl -X POST http://127.0.0.1:8001/api/recommendations \
   -H "Content-Type: application/json" \
-  -d "{\"departure\":\"GWANGJU_SONGJEONG\",\"duration\":\"FULL_DAY\",\"preferences\":[\"NATURE_WALK\"]}"
+  -d '{"departure":"USQUARE","duration":"SIX_HOURS","preferences":["HISTORY_CULTURE","FOOD_MARKET"],"mobility":"MIN_TRANSFER"}'
 ```
 
 요청값:
 
-- `departure`: `GWANGJU_SONGJEONG` 또는 `USQUARE`
-- `duration`: `SIX_HOURS` 또는 `FULL_DAY`
-- `preferences`: `NATURE_WALK`, `HISTORY_CULTURE`, `FOOD_MARKET`, `MEMORY`
+| 필드 | 값 |
+|---|---|
+| `departure` | `USQUARE`, `GWANGJU_SONGJEONG` |
+| `duration` | `SIX_HOURS`, `FULL_DAY` |
+| `preferences` | `NATURE_WALK`, `HISTORY_CULTURE`, `FOOD_MARKET`, `MEMORY` (1개 이상) |
+| `mobility` | `MIN_TRANSFER`(환승 0회), `LOW_BURDEN`(도보 40분·환승 1회 이하), `ANY` |
 
-응답에는 추천된 `courses`와 필터에서 제외된 `exclusions`가 포함된다. 추천 코스는
-이동 피로도와 설명 가능한 점수(`recommendationScore`, `scoreBreakdown`)를 함께
-제공한다.
+응답:
+
+- `courses` — 최대 3건. **모두 시간 안에 돌아올 수 있는 코스만** 들어갑니다.
+- `exclusions` — 제외된 코스와 사유 코드
+- `suggestions` — 결과가 없을 때, 조건을 하나씩 완화해 **실제로 가능한 개수를 계산한** 대안
+- `meta` — 데이터 기준일, 평가한 코스 수, 노출 제외 수, 스키마 위반 수
+
+제외 사유 코드:
+
+`UNSUPPORTED_DEPARTURE`, `DAY_NOT_SUPPORTED`, `TIME_LIMIT_EXCEEDED`,
+`RETURN_NOT_FEASIBLE`, `MOBILITY_LIMIT_EXCEEDED`, `PREFERENCE_MISMATCH`,
+`BLOCKED_BY_EXPOSURE_POLICY`, `SCHEMA_INVALID`
+
+## 오류 응답 규격
+
+모든 오류는 같은 모양입니다. 프론트엔드가 코드로 분기할 수 있습니다.
+
+```json
+{ "code": "NOT_FOUND", "message": "요청한 코스를 찾을 수 없습니다.", "detail": null }
+```
+
+| 상태 | code |
+|---|---|
+| 404 | `NOT_FOUND` |
+| 422 | `INVALID_REQUEST` |
+| 500 | `SERVER_ERROR` |
 
 ## Structure
 
 ```text
 backend/
-├─ app/                         FastAPI API 서버
-│  ├─ main.py                   앱 생성, health, course detail route
+├─ app/
+│  ├─ main.py                    앱 생성, 라우트, 오류 규격, health, 조건 메타
 │  ├─ courses/
-│     ├─ data.py                MVP seed course detail data
-│     ├─ fatigue.py             상세 API 응답용 피로도 계산
-│     ├─ kakao_map.py           Kakao 지도 URL 생성
-│     ├─ models.py              Pydantic response models
-│     └─ service.py             course_id 조회와 응답 조립
+│  │  ├─ data.py                 스프레드시트 스냅샷 (schema v3.1, 코스 7건)
+│  │  ├─ schema.py               데이터 정합성 검증 (+ CLI)
+│  │  ├─ exposure.py             노출 정책 단일 판단 지점
+│  │  ├─ feasibility.py          귀가 가능성 판정
+│  │  ├─ fatigue.py              피로도 계산과 설명
+│  │  ├─ kakao_map.py            지도·구간별 길찾기 링크
+│  │  ├─ models.py               Pydantic 응답 모델
+│  │  └─ service.py              조회와 응답 조립
 │  └─ recommendations/
-│     ├─ models.py              추천 목록 API 요청/응답 모델
-│     └─ service.py             필터링, 피로도 계산, 순위 산정
-├─ src/recommendations/          추천 엔진 순수 로직
-│  ├─ fatigue.ts                이동 피로도 계산
-│  ├─ candidate.ts              코스 후보에 피로도 필드 자동 부착
-│  ├─ filtering.ts              추천 후보 하드 필터링
-│  └─ ranking.ts                취향 기반 추천 순위 산정
-├─ tests/
-│  ├─ *.test.ts                 추천 엔진 테스트
-│  └─ test_*.py                 FastAPI와 Kakao 링크 테스트
-└─ requirements.txt             FastAPI 실행 의존성
+│     ├─ models.py               요청/응답 모델, 제외 사유·제안 코드
+│     └─ service.py              6단계 추천 파이프라인
+├─ tests/                        pytest/unittest 테스트
+└─ requirements.txt
 ```
 
-## Recommendation Flow
-
-추천 목록을 만들 때의 의도된 흐름은 아래와 같다.
+## Recommendation Pipeline
 
 ```text
-검증된 코스 DB
-→ 출발지, 가능 시간, 귀가 가능성 하드 필터
-→ 이동 피로도 자동 계산
-→ 취향, 이동 부담, 지역성, 기록 적합도 가중 점수 계산
-→ 상위 1순위와 대안 코스 반환
+검증된 코스 DB (schema v3.1)
+→ ① 스키마 검증 통과 코스만 남김
+→ ② 노출 정책 적용 (BLOCKED 제거)
+→ ③ 출발지 / 운영 요일 필터
+→ ④ 가능 시간 + 귀가 가능성 필터 (최악값 + 막차 기준)
+→ ⑤ 이동 부담(mobility) 필터
+→ ⑥ 취향 필터 후 가중 점수 산정
+→ 상위 3건 + 제외 사유 + (없으면) 대안 제안
 ```
 
-상세 조회 API는 이미 선택된 코스의 정보를 보여주는 역할이다.
-
-```text
-course_id
-→ seed data에서 코스 상세 조회
-→ 이동 피로도 계산
-→ Kakao 지도 링크 생성
-→ 프론트 상세 화면용 응답 반환
-```
-
-## Filtering
-
-`src/recommendations/filtering.ts`는 점수 계산 전에 이용 불가능한 코스를 제외한다.
-
-- 선택한 출발지에서 출발할 수 없는 코스 제외
-- 선택한 가능 시간을 초과하는 코스 제외
-- 당일 귀가 가능성이 검증되지 않은 코스 제외
-
-기본 가능 시간은 `SIX_HOURS` 360분, `FULL_DAY` 720분이다. 제외된 코스는 다음
-사유를 함께 반환한다.
-
-- `UNSUPPORTED_DEPARTURE`
-- `TIME_LIMIT_EXCEEDED`
-- `RETURN_NOT_FEASIBLE`
+조건을 만족하는 코스가 없으면 **기준을 낮춰 억지로 채우지 않고 빈 목록을 반환**합니다.
+대신 어떤 조건을 바꾸면 몇 개를 볼 수 있는지 계산해서 알려줍니다.
 
 ## Fatigue Calculation
 
-이동 피로도는 총 도보시간, 환승 횟수, 왕복 포함 총 이동시간을 기준으로 계산한다.
+| 항목 | LOW | MEDIUM | HIGH | 가중치 |
+|---|---:|---:|---:|---:|
+| 총 도보시간 | 20분 이하 | 20-40분 | 40분 초과 | 40% |
+| 환승 횟수 | 0회 | 1회 | 2회 이상 | 35% |
+| 총 이동시간 | 90분 이하 | 90-150분 | 150분 초과 | 25% |
 
-| 항목 | LOW | MEDIUM | HIGH |
-|---|---:|---:|---:|
-| 총 도보시간 | 15분 이하 | 15-35분 | 35분 초과 |
-| 환승 횟수 | 0회 | 1회 | 2회 이상 |
-| 왕복 이동시간 | 90분 이하 | 90-180분 | 180분 초과 |
-
-가중치:
-
-- 도보시간 40%
-- 환승 횟수 35%
-- 왕복 이동시간 25%
-
-점수는 1에 가까울수록 낮은 부담, 3에 가까울수록 높은 부담이다.
+점수는 1에 가까울수록 낮은 부담, 3에 가까울수록 높은 부담입니다.
+계산값과 데이터 표기값이 다르면 **더 보수적인 쪽**을 채택하고, 차이는 `/health`에 남깁니다.
 
 ## Ranking
 
-하드 필터를 통과한 후보는 아래 기준으로 0-1 점수화한다.
+| 기준 | 가중치 |
+|---|---:|
+| 취향 일치도 | 35% |
+| 이동 부담 적합도 | 30% |
+| 귀가 여유 | 15% |
+| 지역 자원 적합도 | 12% |
+| 기록 적합도 | 8% |
 
-| 기준 | 가중치 | 설명 |
-|---|---:|---|
-| 취향 일치도 | 40% | 사용자가 선택한 취향 중 코스 태그와 일치한 비율 |
-| 이동 부담 적합도 | 30% | 피로도 점수를 0-1 점수로 변환 |
-| 지역 음식·문화 적합도 | 20% | 검증 데이터가 제공하는 0-1 점수 |
-| 기록 적합도 | 10% | 장면 기록에 적합한 정도 |
-
-여행로그 패턴 점수는 MVP 데이터가 검증되기 전까지 순위 산정에 포함하지 않는다.
-없는 데이터를 근거처럼 쓰지 않기 위해 `localResourceScore`와 `recordFitScore`는
-반드시 0-1 범위로 받는다.
+`scoreBreakdown`에 요소별 원점수·가중치·기여도·설명이 모두 담기며, 가중 점수의 합은
+`recommendationScore`와 일치합니다.
 
 ## Kakao Map Links
 
-MVP에서는 Kakao API 서버 호출을 하지 않고 Kakao 지도 URL 패턴을 사용한다.
-따라서 별도 API key가 필요 없다.
+Kakao API 서버 호출 없이 지도 URL 패턴만 사용하므로 API key가 필요 없습니다.
 
 - 장소 보기: `https://map.kakao.com/link/map/{이름},{위도},{경도}`
-- 길찾기: `https://map.kakao.com/link/to/{이름},{위도},{경도}`
+- 길찾기: `sName`/`sX`/`sY` + `eName`/`eX`/`eY` 파라미터로 **출발지가 미리 채워진** 링크
 
-`backend/app/courses/kakao_map.py`는 장소명을 URL 인코딩하고, 좌표가 유효한지
-검증한 뒤 링크를 생성한다.
+코스 전체 링크 하나가 아니라 `routeLinks`로 구간별(출발지→1번→2번→…→복귀) 링크를
+제공하며, 구간마다 대중교통·도보 링크가 따로 있습니다.
 
 ## Data Replacement
 
-현재 `backend/app/courses/data.py`는 프론트엔드 mock data와 맞춘 MVP seed data다.
-실제 코스 담당자가 검증한 아래 정보가 들어오면 이 파일을 DB 또는 별도 데이터
-저장소로 교체하면 된다.
-
-- 코스 ID, 제목, 지역, 이미지
-- 총 소요시간, 도보시간, 환승 횟수, 왕복 이동시간
-- 귀가 가능 여부
-- 대표 목적지 이름, 위도, 경도
-- 일정 타임라인
-- 지역 음식, 로컬 포인트, 오늘 담아볼 장면
-
-상세 설명서는 `docs/backend/IMPLEMENTATION_GUIDE.md`를 참고한다.
+`backend/app/courses/data.py`는 스프레드시트 스냅샷입니다. 갱신 절차는
+[`docs/DATA_INTEGRATION.md`](../docs/DATA_INTEGRATION.md) 9절을 따르세요.

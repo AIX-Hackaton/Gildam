@@ -13,28 +13,36 @@ import styles from './ResultsPage.module.css'
 export function ResultsPage() {
   const navigate = useNavigate()
   const { conditions, isComplete } = useTravelConditions()
-  const { courses, isLoading, hasError, retry } = useRecommendations(
-    conditions,
-    isComplete,
-  )
+  const {
+    courses,
+    exclusions,
+    suggestions,
+    meta,
+    isLoading,
+    hasError,
+    errorMessage,
+    retry,
+  } = useRecommendations(conditions, isComplete)
 
   if (!isComplete) return <Navigate to="/plan" replace />
 
   return (
     <AppShell>
-      <PageHeader
-        title="추천 결과"
-        showBack
-        onBack={() => navigate('/plan')}
-      />
+      <PageHeader title="추천 결과" showBack onBack={() => navigate('/plan')} />
 
-      <main className={`page-content ${styles.main}`}>
+      <main className={`page-content ${styles.main}`} aria-busy={isLoading}>
         {isLoading ? (
           <CourseCardSkeleton />
         ) : hasError ? (
-          <ErrorState onRetry={retry} onBack={() => navigate('/plan')} />
+          <ErrorState
+            message={errorMessage}
+            onRetry={retry}
+            onBack={() => navigate('/plan')}
+          />
         ) : courses.length === 0 ? (
           <NoResultsState
+            suggestions={suggestions}
+            exclusions={exclusions}
             onReset={() => navigate('/plan')}
             onHome={() => navigate('/')}
           />
@@ -42,6 +50,8 @@ export function ResultsPage() {
           <ResultsContent
             conditions={conditions}
             courses={courses}
+            exclusions={exclusions}
+            meta={meta}
             onChangeConditions={() => navigate('/plan')}
             onOpenCourse={(courseId) => navigate(`/courses/${courseId}`)}
           />

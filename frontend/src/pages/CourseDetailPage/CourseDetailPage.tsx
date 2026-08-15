@@ -6,12 +6,17 @@ import { CourseDetailContent } from '../../components/course/CourseDetailContent
 import { ErrorState } from '../../components/feedback/ErrorState/ErrorState.tsx'
 import { NotFoundState } from '../../components/feedback/NotFoundState/NotFoundState.tsx'
 import { useCourseDetail } from '../../hooks/useCourseDetail.ts'
+import { useTravelConditions } from '../../hooks/useTravelConditions.ts'
 import styles from './CourseDetailPage.module.css'
 
 export function CourseDetailPage() {
   const navigate = useNavigate()
   const { courseId = '' } = useParams()
-  const { course, hasError, retry } = useCourseDetail(courseId)
+  const { conditions } = useTravelConditions()
+  const { course, hasError, errorMessage, retry } = useCourseDetail(
+    courseId,
+    conditions.duration,
+  )
 
   if (course === undefined) {
     return (
@@ -33,7 +38,11 @@ export function CourseDetailPage() {
           onBack={() => navigate('/results')}
         />
         <main className="page-content">
-          <ErrorState onRetry={retry} onBack={() => navigate('/plan')} />
+          <ErrorState
+            message={errorMessage}
+            onRetry={retry}
+            onBack={() => navigate('/plan')}
+          />
         </main>
       </AppShell>
     )

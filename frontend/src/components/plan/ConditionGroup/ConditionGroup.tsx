@@ -4,6 +4,7 @@ import styles from './ConditionGroup.module.css'
 interface ConditionOption<T extends string> {
   id: T
   label: string
+  hint?: string
 }
 
 interface ConditionGroupProps<T extends string> {
@@ -12,6 +13,7 @@ interface ConditionGroupProps<T extends string> {
   options: Array<ConditionOption<T>>
   isSelected: (id: T) => boolean
   onSelect: (id: T) => void
+  error?: string
 }
 
 export function ConditionGroup<T extends string>({
@@ -20,9 +22,16 @@ export function ConditionGroup<T extends string>({
   options,
   isSelected,
   onSelect,
+  error,
 }: ConditionGroupProps<T>) {
+  const errorId = error ? `${legend}-error` : undefined
+
   return (
-    <fieldset className={styles.group}>
+    <fieldset
+      className={styles.group}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={errorId}
+    >
       <legend className={styles.legend}>
         {legend}
         {hint ? <span className={styles.hint}>{hint}</span> : null}
@@ -37,6 +46,11 @@ export function ConditionGroup<T extends string>({
           />
         ))}
       </div>
+      {error ? (
+        <p className={styles.error} id={errorId} role="alert">
+          {error}
+        </p>
+      ) : null}
     </fieldset>
   )
 }

@@ -2,12 +2,34 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from backend.app.courses.models import (
+    FatigueExplanation,
+    ReturnFeasibilityModel,
+)
+
 DepartureId = Literal["GWANGJU_SONGJEONG", "USQUARE"]
 DurationId = Literal["SIX_HOURS", "FULL_DAY"]
 PreferenceId = Literal["NATURE_WALK", "HISTORY_CULTURE", "FOOD_MARKET", "MEMORY"]
+MobilityId = Literal["MIN_TRANSFER", "LOW_BURDEN", "ANY"]
 FatigueLevel = Literal["LOW", "MEDIUM", "HIGH"]
+
 ExclusionReasonCode = Literal[
-    "UNSUPPORTED_DEPARTURE", "TIME_LIMIT_EXCEEDED", "RETURN_NOT_FEASIBLE"
+    "UNSUPPORTED_DEPARTURE",
+    "DAY_NOT_SUPPORTED",
+    "TIME_LIMIT_EXCEEDED",
+    "RETURN_NOT_FEASIBLE",
+    "MOBILITY_LIMIT_EXCEEDED",
+    "PREFERENCE_MISMATCH",
+    "BLOCKED_BY_EXPOSURE_POLICY",
+    "SCHEMA_INVALID",
+]
+
+SuggestionCode = Literal[
+    "RELAX_DURATION",
+    "RELAX_MOBILITY",
+    "ADD_PREFERENCE",
+    "CHANGE_DEPARTURE",
+    "NO_ALTERNATIVE",
 ]
 
 
@@ -15,12 +37,14 @@ class RecommendationRequest(BaseModel):
     departure: DepartureId
     duration: DurationId
     preferences: list[PreferenceId] = Field(min_length=1)
+    mobility: MobilityId = "ANY"
 
 
 class RecommendationScoreFactor(BaseModel):
     score: float
     weight: float
     weightedScore: float
+    explanation: str
 
 
 class PreferenceMatchScoreFactor(RecommendationScoreFactor):
@@ -31,11 +55,20 @@ class PreferenceMatchScoreFactor(RecommendationScoreFactor):
 
 class MobilityScoreFactor(RecommendationScoreFactor):
     fatigueScore: float
+    fatigueLevel: FatigueLevel
+    walkingMinutes: int
+    transferCount: int
+
+
+class ReturnMarginScoreFactor(RecommendationScoreFactor):
+    slackMinutes: int
+    status: str
 
 
 class RecommendationScoreBreakdown(BaseModel):
     preferenceMatch: PreferenceMatchScoreFactor
     mobility: MobilityScoreFactor
+    returnMargin: ReturnMarginScoreFactor
     localResource: RecommendationScoreFactor
     recordFit: RecommendationScoreFactor
 
@@ -46,15 +79,22 @@ class CourseRecommendationSummary(BaseModel):
     region: str
     thumbnailUrl: str
     tags: list[str]
+    courseType: str
     fatigueLevel: FatigueLevel
     fatigueScore: float
+    fatigueExplanation: FatigueExplanation
     durationMinutes: int
+    durationMinMinutes: int
+    durationMaxMinutes: int
     walkingMinutes: int
     transferCount: int
     roundTripTransitMinutes: int
+    verificationStatus: str
+    exposureTier: str
     recommendationReasons: list[str]
     recommendationScore: float
     scoreBreakdown: RecommendationScoreBreakdown
+    returnFeasibility: ReturnFeasibilityModel
 
 
 class ExclusionReason(BaseModel):
@@ -68,6 +108,23 @@ class ExcludedCourse(BaseModel):
     reasons: list[ExclusionReason]
 
 
+class RecommendationSuggestion(BaseModel):
+    code: SuggestionCode
+    message: str
+    availableCount: int = 0
+
+
+class RecommendationMeta(BaseModel):
+    exposureMode: str
+    evaluatedCount: int
+    blockedCount: int
+    schemaInvalidCount: int
+    dataSnapshotDate: str
+    appliedMobility: MobilityId
+
+
 class RecommendationResponse(BaseModel):
     courses: list[CourseRecommendationSummary]
     exclusions: list[ExcludedCourse]
+    suggestions: list[RecommendationSuggestion] = Field(default_factory=list)
+    meta: RecommendationMeta

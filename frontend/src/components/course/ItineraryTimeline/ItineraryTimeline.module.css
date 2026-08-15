@@ -78,3 +78,31 @@
   font-size: var(--font-size-caption);
   line-height: 1.55;
 }
+
+.transfer {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8a5d15;
+  background: #fbf0dc;
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.verification {
+  font-size: 0.72rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+.mapLink {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent, #2f6b9a);
+}

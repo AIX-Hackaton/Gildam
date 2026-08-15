@@ -82,3 +82,60 @@
   border-radius: var(--radius-md);
   background: #f6edda;
 }
+
+.notice {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fbf0dc;
+  border: 1px solid #f0dcb8;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: #6b4a12;
+}
+
+.notice strong {
+  font-size: 0.88rem;
+}
+
+.routeHint {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+.routeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.routeList li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 10px;
+}
+
+.routeLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.routeActions {
+  display: flex;
+  gap: 10px;
+}
+
+.routeActions a {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent, #2f6b9a);
+}

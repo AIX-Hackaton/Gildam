@@ -1,8 +1,10 @@
 import type { ItineraryItem } from '../../../types/course.ts'
+import { verificationLabels } from '../../../utils/coursePresentation.ts'
 import styles from './ItineraryTimeline.module.css'
 
 const itineraryTypeLabels: Record<ItineraryItem['type'], string> = {
   transport: '이동',
+  walk: '도보',
   place: '장소',
   food: '식사',
 }
@@ -26,9 +28,30 @@ export function ItineraryTimeline({ items }: ItineraryTimelineProps) {
               {item.durationMinutes ? (
                 <span className={styles.duration}>{item.durationMinutes}분</span>
               ) : null}
+              {item.isTransfer ? (
+                <span className={styles.transfer}>환승</span>
+              ) : null}
             </div>
             <h3>{item.name}</h3>
             {item.note ? <p>{item.note}</p> : null}
+            <div className={styles.footer}>
+              {item.verificationStatus ? (
+                <span className={styles.verification}>
+                  {verificationLabels[item.verificationStatus] ??
+                    item.verificationStatus}
+                </span>
+              ) : null}
+              {item.mapUrl ? (
+                <a
+                  className={styles.mapLink}
+                  href={item.mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  지도에서 보기
+                </a>
+              ) : null}
+            </div>
           </div>
         </li>
       ))}

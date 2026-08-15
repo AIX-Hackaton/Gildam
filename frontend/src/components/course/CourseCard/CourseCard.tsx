@@ -1,6 +1,9 @@
 import type { CourseSummary } from '../../../types/course.ts'
+import { verificationLabels } from '../../../utils/coursePresentation.ts'
 import { Button } from '../../common/Button/Button.tsx'
 import { CourseMetrics } from '../CourseMetrics/CourseMetrics.tsx'
+import { RecommendationBasis } from '../RecommendationBasis/RecommendationBasis.tsx'
+import { ReturnFeasibilityCard } from '../ReturnFeasibilityCard/ReturnFeasibilityCard.tsx'
 import styles from './CourseCard.module.css'
 
 interface CourseCardProps {
@@ -16,6 +19,9 @@ export function CourseCard({
   rank,
   onOpen,
 }: CourseCardProps) {
+  const needsReview =
+    course.exposureTier === 'DEMO_ONLY' || course.exposureTier === 'MANUAL_REVIEW'
+
   return (
     <article className={`${styles.card} ${featured ? styles.featured : ''}`}>
       <div className={styles.imageWrap}>
@@ -25,10 +31,7 @@ export function CourseCard({
           alt={`${course.region} ${course.title} 대표 풍경`}
         />
         {featured ? (
-          <span
-            className={styles.rankBadge}
-            aria-label={`${rank ?? 1}순위 추천`}
-          >
+          <span className={styles.rankBadge} aria-label={`${rank ?? 1}순위 추천`}>
             <span className={styles.rankBrand} aria-hidden="true">
               GILDAM
             </span>
@@ -47,6 +50,13 @@ export function CourseCard({
 
         <CourseMetrics course={course} variant="card" />
 
+        {course.returnFeasibility ? (
+          <ReturnFeasibilityCard
+            feasibility={course.returnFeasibility}
+            compact
+          />
+        ) : null}
+
         <div className={styles.tags} aria-label="코스 취향">
           {course.tags.map((tag) => (
             <span className={styles.tag} key={tag}>
@@ -55,8 +65,20 @@ export function CourseCard({
           ))}
         </div>
 
+        {needsReview ? (
+          <p className={styles.verification}>
+            {verificationLabels[course.verificationStatus ?? ''] ??
+              course.verificationStatus}
+            {' · '}
+            이용일 확인이 필요한 코스입니다
+          </p>
+        ) : null}
+
         {featured ? (
-          <section className={styles.reasons} aria-labelledby={`${course.id}-reason`}>
+          <section
+            className={styles.reasons}
+            aria-labelledby={`${course.id}-reason`}
+          >
             <h3 id={`${course.id}-reason`}>추천 이유</h3>
             <ul>
               {course.recommendationReasons.map((reason) => (
@@ -65,6 +87,8 @@ export function CourseCard({
             </ul>
           </section>
         ) : null}
+
+        <RecommendationBasis course={course} defaultOpen={featured} />
 
         <Button
           type="button"

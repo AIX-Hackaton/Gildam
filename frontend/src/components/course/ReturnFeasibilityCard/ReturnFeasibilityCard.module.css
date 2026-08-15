@@ -1,0 +1,103 @@
+.card {
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-left-width: 4px;
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  background: var(--color-surface, #fff);
+}
+
+.ok {
+  border-left-color: #2f6b9a;
+}
+
+.warn {
+  border-left-color: #c58b2f;
+}
+
+.danger {
+  border-left-color: #b3453a;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.status {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ddebf7;
+  color: #2f6b9a;
+}
+
+.warn .status {
+  background: #fbf0dc;
+  color: #8a5d15;
+}
+
+.danger .status {
+  background: #f8e0dd;
+  color: #8c332a;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.grid dt {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+.grid dd {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.confidence {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent, #2f6b9a);
+}
+
+.messages {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--color-text-muted, #64748b);
+}
+
+.badge {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #2f6b9a;
+}
+
+.badge.warn {
+  color: #8a5d15;
+}
+
+.badge.danger {
+  color: #8c332a;
+}

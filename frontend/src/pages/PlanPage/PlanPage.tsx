@@ -9,10 +9,17 @@ import { ConditionGroup } from '../../components/plan/ConditionGroup/ConditionGr
 import {
   departureOptions,
   durationOptions,
+  mobilityOptions,
   preferenceOptions,
 } from '../../constants/travelConditionOptions.ts'
 import { useTravelConditions } from '../../hooks/useTravelConditions.ts'
 import styles from './PlanPage.module.css'
+
+const missingFieldMessages: Record<string, string> = {
+  departure: '출발지를 선택해 주세요.',
+  duration: '가능 시간을 선택해 주세요.',
+  preferences: '취향을 한 개 이상 선택해 주세요.',
+}
 
 export function PlanPage() {
   const navigate = useNavigate()
@@ -21,13 +28,22 @@ export function PlanPage() {
     setDeparture,
     setDuration,
     togglePreference,
+    setMobility,
     isComplete,
+    missingFields,
   } = useTravelConditions()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showValidation, setShowValidation] = useState(false)
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!isComplete || isSubmitting) return
+
+    if (!isComplete) {
+      setShowValidation(true)
+      return
+    }
+
+    if (isSubmitting) return
 
     setIsSubmitting(true)
     navigate('/results')
@@ -35,17 +51,13 @@ export function PlanPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="여행 조건"
-        showBack
-        onBack={() => navigate('/')}
-      />
+      <PageHeader title="여행 조건" showBack onBack={() => navigate('/')} />
 
       <main className={`page-content ${styles.main}`}>
         <section className={styles.intro}>
           <h1 className={styles.heading}>여행 조건을 선택해주세요</h1>
           <p className={styles.description}>
-            선택한 조건을 바탕으로 완주 가능한 코스를 추천해드려요.
+            선택한 조건을 바탕으로 시간 안에 다녀올 수 있는 코스만 추천해드려요.
           </p>
         </section>
 
@@ -53,12 +65,18 @@ export function PlanPage() {
           id="travel-plan-form"
           className={styles.form}
           onSubmit={handleSubmit}
+          noValidate
         >
           <ConditionGroup
             legend="출발지"
             options={departureOptions}
             isSelected={(id) => conditions.departure === id}
             onSelect={setDeparture}
+            error={
+              showValidation && missingFields.includes('departure')
+                ? missingFieldMessages.departure
+                : undefined
+            }
           />
 
           <ConditionGroup
@@ -66,6 +84,11 @@ export function PlanPage() {
             options={durationOptions}
             isSelected={(id) => conditions.duration === id}
             onSelect={setDuration}
+            error={
+              showValidation && missingFields.includes('duration')
+                ? missingFieldMessages.duration
+                : undefined
+            }
           />
 
           <ConditionGroup
@@ -74,6 +97,19 @@ export function PlanPage() {
             options={preferenceOptions}
             isSelected={(id) => conditions.preferences.includes(id)}
             onSelect={togglePreference}
+            error={
+              showValidation && missingFields.includes('preferences')
+                ? missingFieldMessages.preferences
+                : undefined
+            }
+          />
+
+          <ConditionGroup
+            legend="이동 부담"
+            hint="환승·도보 상한을 정합니다"
+            options={mobilityOptions}
+            isSelected={(id) => conditions.mobility === id}
+            onSelect={setMobility}
           />
         </form>
       </main>
