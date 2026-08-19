@@ -1,7 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 
 import { CourseDetailPage } from '../pages/CourseDetailPage/CourseDetailPage.tsx'
-import { HomeCollagePreviewPage } from '../pages/HomeCollagePreviewPage/HomeCollagePreviewPage.tsx'
 import { HomePage } from '../pages/HomePage/HomePage.tsx'
 import { NotFoundPage } from '../pages/NotFoundPage/NotFoundPage.tsx'
 import { PlanPage } from '../pages/PlanPage/PlanPage.tsx'
@@ -11,7 +10,6 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/home-collage-preview" element={<HomeCollagePreviewPage />} />
       <Route path="/plan" element={<PlanPage />} />
       <Route path="/results" element={<ResultsPage />} />
       <Route path="/courses/:courseId" element={<CourseDetailPage />} />

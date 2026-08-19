@@ -18,7 +18,7 @@
   display: flex;
   min-height: calc(100dvh - 64px);
   flex-direction: column;
-  padding: var(--space-4) 0 var(--space-5);
+  padding: var(--space-4) 0 calc(var(--space-5) + env(safe-area-inset-bottom));
 }
 
 .intro,
@@ -47,27 +47,36 @@
 }
 
 .carouselGroup {
-  margin-top: clamp(32px, 7vh, 60px);
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 200px;
+  max-height: 560px;
+  margin-top: 48px;
   margin-inline: var(--space-5);
 }
 
 .carousel {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   border-radius: 0;
   background: #f4f9ee;
 }
 
 .carouselTrack {
+  position: absolute;
+  inset: 0;
   display: flex;
   width: 100%;
+  height: 100%;
   animation: carousel-slide 15s ease-in-out infinite;
   will-change: transform;
 }
 
 .slide {
   flex: 0 0 100%;
+  height: 100%;
   overflow: hidden;
-  height: clamp(240px, 36vh, 360px);
 }
 
 .slideImage {
@@ -77,7 +86,7 @@
 }
 
 .cta {
-  margin-top: clamp(32px, 7vh, 60px);
+  margin-top: 56px;
 }
 
 .ctaButton {
@@ -102,20 +111,6 @@
 @media (max-width: 350px) {
   .description br {
     display: none;
-  }
-}
-
-@media (max-height: 700px) {
-  .carouselGroup {
-    margin-top: clamp(24px, 4vh, 32px);
-  }
-
-  .slide {
-    height: clamp(200px, 34vh, 240px);
-  }
-
-  .cta {
-    margin-top: clamp(24px, 4vh, 32px);
   }
 }
 
