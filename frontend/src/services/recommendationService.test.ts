@@ -20,6 +20,7 @@ describe('recommendationService', () => {
       departure: null,
       duration: 'FULL_DAY',
       preferences: ['NATURE_WALK'],
+      mobility: 'ANY',
     }
 
     await expect(getRecommendations(conditions)).resolves.toEqual([])
@@ -69,6 +70,7 @@ describe('recommendationService', () => {
       departure: 'GWANGJU_SONGJEONG',
       duration: 'FULL_DAY',
       preferences: ['HISTORY_CULTURE', 'FOOD_MARKET', 'MEMORY'],
+      mobility: 'MIN_TRANSFER',
     }
 
     const courses = await getRecommendations(conditions)

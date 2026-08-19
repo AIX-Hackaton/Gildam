@@ -66,6 +66,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '광주송정역' }))
     await user.click(screen.getByRole('button', { name: '하루 종일' }))
     await user.click(screen.getByRole('button', { name: '자연·산책' }))
+    await user.click(screen.getByRole('button', { name: '환승 최소' }))
 
     expect(submitButton).toBeEnabled()
     fetchMock.mockResolvedValueOnce(
@@ -104,6 +105,7 @@ describe('App', () => {
       screen.getByText('• 자연·산책 취향과 주요 장소가 잘 맞아요.'),
     ).toBeInTheDocument()
     expect(screen.getByText('귀가 가능')).toBeInTheDocument()
+    expect(screen.getByText('환승 최소')).toBeInTheDocument()
   })
 
   it('asks for a preference when submitting without one', async () => {

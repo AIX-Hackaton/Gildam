@@ -9,6 +9,7 @@ import { ConditionGroup } from '../../components/plan/ConditionGroup/ConditionGr
 import {
   departureOptions,
   durationOptions,
+  mobilityOptions,
   preferenceOptions,
 } from '../../constants/travelConditionOptions.ts'
 import { useTravelConditions } from '../../hooks/useTravelConditions.ts'
@@ -20,6 +21,7 @@ export function PlanPage() {
     conditions,
     setDeparture,
     setDuration,
+    setMobility,
     togglePreference,
     isComplete,
   } = useTravelConditions()
@@ -93,6 +95,13 @@ export function PlanPage() {
             options={durationOptions}
             isSelected={(id) => conditions.duration === id}
             onSelect={setDuration}
+          />
+
+          <ConditionGroup
+            legend="이동 부담"
+            options={mobilityOptions}
+            isSelected={(id) => conditions.mobility === id}
+            onSelect={setMobility}
           />
 
           <ConditionGroup

@@ -3,6 +3,7 @@ import {
   departureOptions,
   durationOptions,
   getOptionLabel,
+  mobilityOptions,
   preferenceOptions,
 } from '../../constants/travelConditionOptions.ts'
 import type { CourseSummary } from '../../types/course.ts'
@@ -28,6 +29,7 @@ export function ResultsContent({
     conditions.duration
       ? getOptionLabel(durationOptions, conditions.duration)
       : null,
+    getOptionLabel(mobilityOptions, conditions.mobility),
     ...conditions.preferences.map((preference) =>
       getOptionLabel(preferenceOptions, preference),
     ),
