@@ -488,7 +488,7 @@ interface ItineraryItem {
   id: string;
   time?: string;
   name: string;
-  type: "transport" | "place" | "food" | "free";
+  type: "transport" | "walk" | "place" | "food";
   durationMinutes?: number;
   note?: string;
 }

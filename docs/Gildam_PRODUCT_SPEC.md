@@ -412,6 +412,9 @@ MVP는 광주 출발 전남 당일치기 여행을 대상으로 하지만, 향�
 - 이동시간
 - 짧은 설명
 
+일정 유형은 `transport`를 `대중교통`, `walk`를 `도보`, `place`를 `장소`,
+`food`를 `식사`로 표시한다.
+
 ### 오늘 담아볼 장면 예시
 
 - 전남에서 내가 먹은 음식은?
@@ -620,7 +623,7 @@ interface Course {
   itinerary: Array<{
     id: string;
     name: string;
-    type: "transport" | "place" | "food";
+    type: "transport" | "walk" | "place" | "food";
     stayMinutes?: number;
     transportMinutes?: number;
     description?: string;

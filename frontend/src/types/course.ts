@@ -50,7 +50,7 @@ export interface ItineraryItem {
   id: string
   time?: string
   name: string
-  type: 'transport' | 'place' | 'food'
+  type: 'transport' | 'walk' | 'place' | 'food'
   durationMinutes?: number
   note?: string
 }
