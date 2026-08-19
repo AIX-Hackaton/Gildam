@@ -2,7 +2,8 @@ import type { ItineraryItem } from '../../../types/course.ts'
 import styles from './ItineraryTimeline.module.css'
 
 const itineraryTypeLabels: Record<ItineraryItem['type'], string> = {
-  transport: '이동',
+  transport: '대중교통',
+  walk: '도보',
   place: '장소',
   food: '식사',
 }

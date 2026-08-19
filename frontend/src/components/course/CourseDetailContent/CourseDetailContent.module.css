@@ -42,19 +42,28 @@
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 5px;
   margin-top: 12px;
 }
 
 .tags span {
   padding: 8px 10px;
+  border: 1px solid var(--color-recommendation-chip-border);
   border-radius: var(--radius-pill);
-  color: #124216;
-  background: #ddefc7;
+  color: var(--color-recommendation-chip-text);
+  background: var(--color-recommendation-chip);
   font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.025em;
+  font-weight: 400;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.tags .returnAvailable {
+  color: var(--color-success);
+}
+
+.tags .returnTight {
+  color: var(--color-warning);
 }
 
 .section {

@@ -85,6 +85,7 @@ describe('App', () => {
               recommendationReasons: [
                 '자연·산책 취향과 주요 장소가 잘 맞아요.',
               ],
+              returnFeasibility: { status: 'FEASIBLE' },
             },
           ],
           exclusions: [],
@@ -98,6 +99,35 @@ describe('App', () => {
       await screen.findByRole('heading', {
         name: '내 조건에 맞는 코스를 찾았어요',
       }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('• 자연·산책 취향과 주요 장소가 잘 맞아요.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('귀가가능')).toBeInTheDocument()
+  })
+
+  it('asks for a preference when submitting without one', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={['/plan']}>
+        <TravelConditionsProvider>
+          <App />
+        </TravelConditionsProvider>
+      </MemoryRouter>,
+    )
+
+    const submitButton = screen.getByRole('button', { name: '코스 추천받기' })
+
+    await user.click(screen.getByRole('button', { name: '유스퀘어' }))
+    await user.click(screen.getByRole('button', { name: '6시간' }))
+
+    expect(submitButton).toBeEnabled()
+    await user.click(submitButton)
+
+    expect(screen.getByRole('alert')).toHaveTextContent('취향을 선택해주세요')
+    expect(
+      screen.getByRole('heading', { name: '여행 조건을 선택해주세요' }),
     ).toBeInTheDocument()
   })
 })

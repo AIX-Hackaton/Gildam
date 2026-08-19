@@ -11,8 +11,9 @@
   --color-primary-800: #5b7f30;
   --color-on-primary: #fffdf8;
   --color-text-accent: #144d39;
-  --color-recommendation-chip: #ddefc7;
-  --color-recommendation-chip-text: #124216;
+  --color-recommendation-chip: #ffffff;
+  --color-recommendation-chip-border: #d3c7c0;
+  --color-recommendation-chip-text: #706661;
   --color-recommendation-positive: #44b739;
 
   --color-canvas: #ffffff;

@@ -1,5 +1,9 @@
 import type { Course } from '../../../types/course.ts'
-import { formatCompactLabel } from '../../../utils/coursePresentation.ts'
+import {
+  formatCompactLabel,
+  formatRecommendationReason,
+  getReturnFeasibilityLabel,
+} from '../../../utils/coursePresentation.ts'
 import { Button } from '../../common/Button/Button.tsx'
 import { StickyBottomCTA } from '../../common/StickyBottomCTA/StickyBottomCTA.tsx'
 import { CourseInfoCard } from '../CourseInfoCard/CourseInfoCard.tsx'
@@ -17,6 +21,13 @@ function openExternalUrl(url: string) {
 
 export function CourseDetailContent({ course }: CourseDetailContentProps) {
   const directionsUrl = course.kakaoDirectionsUrl ?? course.directionsUrl
+  const returnFeasibilityLabel = getReturnFeasibilityLabel(
+    course.returnFeasibility.status,
+  )
+  const returnFeasibilityClassName =
+    course.returnFeasibility.status === 'FEASIBLE'
+      ? styles.returnAvailable
+      : styles.returnTight
 
   return (
     <>
@@ -35,6 +46,11 @@ export function CourseDetailContent({ course }: CourseDetailContentProps) {
               {course.tags.map((tag) => (
                 <span key={tag}>{formatCompactLabel(tag)}</span>
               ))}
+              {returnFeasibilityLabel ? (
+                <span className={returnFeasibilityClassName}>
+                  {returnFeasibilityLabel}
+                </span>
+              ) : null}
             </div>
           </section>
 
@@ -44,7 +60,7 @@ export function CourseDetailContent({ course }: CourseDetailContentProps) {
             <h2>추천 이유</h2>
             <div className={styles.reasonList}>
               {course.recommendationReasons.map((reason) => (
-                <p key={reason}>{reason.replace(/[.!?]+$/u, '')}</p>
+                <p key={reason}>{formatRecommendationReason(reason)}</p>
               ))}
             </div>
           </section>

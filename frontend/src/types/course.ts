@@ -1,4 +1,9 @@
 export type FatigueLevel = 'LOW' | 'MEDIUM' | 'HIGH'
+export type ReturnFeasibilityStatus = 'FEASIBLE' | 'TIGHT' | 'NOT_FEASIBLE'
+
+export interface ReturnFeasibility {
+  status: ReturnFeasibilityStatus
+}
 
 export interface RecommendationScoreFactor {
   score: number
@@ -38,13 +43,14 @@ export interface CourseSummary {
   recommendationReasons: string[]
   recommendationScore?: number
   scoreBreakdown?: RecommendationScoreBreakdown
+  returnFeasibility: ReturnFeasibility
 }
 
 export interface ItineraryItem {
   id: string
   time?: string
   name: string
-  type: 'transport' | 'place' | 'food'
+  type: 'transport' | 'walk' | 'place' | 'food'
   durationMinutes?: number
   note?: string
 }
