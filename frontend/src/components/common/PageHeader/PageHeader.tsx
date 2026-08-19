@@ -6,6 +6,7 @@ interface PageHeaderProps {
   title?: string
   visuallyHiddenTitle?: boolean
   backAlignedToContent?: boolean
+  compact?: boolean
   showBack?: boolean
   onBack?: () => void
   rightActions?: ReactNode
@@ -15,13 +16,14 @@ export function PageHeader({
   title,
   visuallyHiddenTitle = false,
   backAlignedToContent = false,
+  compact = false,
   showBack = false,
   onBack,
   rightActions,
 }: PageHeaderProps) {
   return (
     <header
-      className={`${styles.header} ${backAlignedToContent ? styles.backAligned : ''}`}
+      className={`${styles.header} ${backAlignedToContent ? styles.backAligned : ''} ${compact ? styles.compact : ''}`}
     >
       <div>
         {showBack ? (

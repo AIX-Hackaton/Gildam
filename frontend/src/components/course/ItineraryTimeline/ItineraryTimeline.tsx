@@ -18,17 +18,11 @@ export function ItineraryTimeline({ items }: ItineraryTimelineProps) {
         <li key={item.id}>
           <div className={styles.marker} aria-hidden="true" />
           <div className={styles.content}>
-            <div className={styles.meta}>
-              <span className={styles.time}>{item.time}</span>
-              <span className={styles.type}>
-                {itineraryTypeLabels[item.type]}
-              </span>
-              {item.durationMinutes ? (
-                <span className={styles.duration}>{item.durationMinutes}분</span>
-              ) : null}
-            </div>
             <h3>{item.name}</h3>
-            {item.note ? <p>{item.note}</p> : null}
+            <span className={styles.type}>{itineraryTypeLabels[item.type]}</span>
+            {item.durationMinutes ? (
+              <span className={styles.duration}>{item.durationMinutes}분</span>
+            ) : null}
           </div>
         </li>
       ))}

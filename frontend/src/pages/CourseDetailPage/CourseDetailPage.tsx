@@ -61,7 +61,14 @@ export function CourseDetailPage() {
 
   return (
     <AppShell>
-      <PageHeader title="코스 상세" showBack onBack={() => navigate(-1)} />
+      <PageHeader
+        title="코스 상세"
+        visuallyHiddenTitle
+        backAlignedToContent
+        compact
+        showBack
+        onBack={() => navigate(-1)}
+      />
       <CourseDetailContent course={course} />
     </AppShell>
   )

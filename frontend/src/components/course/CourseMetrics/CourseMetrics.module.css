@@ -69,9 +69,34 @@
 }
 
 .detail {
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-subtle);
+  gap: 16px 12px;
+  padding: 16px 8px;
+  border-radius: 15px;
+  background: #f4f9ee;
+}
+
+.detail > div {
+  text-align: center;
+}
+
+.detail dt {
+  margin-bottom: 4px;
+  color: #706661;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: -0.025em;
+}
+
+.detail dd {
+  color: #4d433d;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.025em;
+}
+
+.detail > div:first-child dd {
+  color: #44b739;
 }
 
 @media (max-width: 350px) {
