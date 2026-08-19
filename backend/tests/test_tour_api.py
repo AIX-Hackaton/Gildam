@@ -7,6 +7,7 @@ from backend.app.main import app
 from backend.app.tour_api.client import (
     TourApiClient,
     TourApiProviderError,
+    TourApiTransportError,
     get_tour_api_client,
 )
 from backend.app.tour_api.models import TourApiItem, TourApiListResponse
@@ -101,6 +102,41 @@ class TourApiClientTest(unittest.TestCase):
             self._client(handler).detail_common(content_id="126499")
 
         self.assertEqual(context.exception.code, "20")
+
+    def test_retries_timeout_with_a_strict_bound(self) -> None:
+        attempts = 0
+
+        def handler(_: httpx.Request) -> httpx.Response:
+            nonlocal attempts
+            attempts += 1
+            raise httpx.ReadTimeout("timed out")
+
+        with self.assertRaises(TourApiTransportError):
+            self._client(handler).search_keyword(keyword="timeout")
+
+        self.assertEqual(attempts, 3)
+
+    def test_retries_retryable_5xx_then_succeeds(self) -> None:
+        attempts = 0
+
+        def handler(_: httpx.Request) -> httpx.Response:
+            nonlocal attempts
+            attempts += 1
+            if attempts < 3:
+                return httpx.Response(503)
+            return httpx.Response(
+                200,
+                json={
+                    "response": {
+                        "header": {"resultCode": "0000", "resultMsg": "OK"},
+                        "body": {"items": {"item": []}},
+                    }
+                },
+            )
+
+        result = self._client(handler).search_keyword(keyword="retry")
+        self.assertEqual(result.totalCount, 0)
+        self.assertEqual(attempts, 3)
 
 
 class TourApiEndpointTest(unittest.TestCase):

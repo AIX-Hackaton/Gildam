@@ -1778,10 +1778,6 @@ components:
           - type: string
           - type: 'null'
           title: Copyrighttype
-        raw:
-          additionalProperties: true
-          type: object
-          title: Raw
       type: object
       title: TourApiItem
     TourApiListResponse:
