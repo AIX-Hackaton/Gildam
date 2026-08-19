@@ -4,6 +4,9 @@ import styles from './PageHeader.module.css'
 
 interface PageHeaderProps {
   title?: string
+  visuallyHiddenTitle?: boolean
+  backAlignedToContent?: boolean
+  compact?: boolean
   showBack?: boolean
   onBack?: () => void
   rightActions?: ReactNode
@@ -11,12 +14,17 @@ interface PageHeaderProps {
 
 export function PageHeader({
   title,
+  visuallyHiddenTitle = false,
+  backAlignedToContent = false,
+  compact = false,
   showBack = false,
   onBack,
   rightActions,
 }: PageHeaderProps) {
   return (
-    <header className={styles.header}>
+    <header
+      className={`${styles.header} ${backAlignedToContent ? styles.backAligned : ''} ${compact ? styles.compact : ''}`}
+    >
       <div>
         {showBack ? (
           <button
@@ -30,7 +38,7 @@ export function PageHeader({
         ) : null}
       </div>
       {title ? (
-        <p className={styles.title}>{title}</p>
+        <p className={visuallyHiddenTitle ? 'sr-only' : styles.title}>{title}</p>
       ) : (
         <p className={styles.brand}>길담</p>
       )}

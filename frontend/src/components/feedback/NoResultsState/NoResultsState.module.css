@@ -1,22 +1,23 @@
 .eyebrow {
-  margin: 0 0 var(--space-3);
-  padding: 6px 10px;
-  border-radius: var(--radius-pill);
-  color: var(--color-primary-800);
-  background: var(--color-primary-100);
-  font-size: var(--font-size-caption);
+  margin: 0 0 var(--space-5);
+  color: #87aa37;
+  font-size: 2.25rem;
   font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .suggestions {
   width: 100%;
   margin: var(--space-6) 0 0;
-  padding: var(--space-5) var(--space-5) var(--space-5) 38px;
-  border-radius: var(--radius-lg);
-  color: var(--color-text-secondary);
-  background: var(--color-surface-subtle);
-  font-size: var(--font-size-body);
-  text-align: left;
+  padding: var(--space-5);
+  border-radius: 20px;
+  color: #706661;
+  background: #f4f9ee;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  list-style-position: inside;
+  text-align: center;
 }
 
 .suggestions li + li {

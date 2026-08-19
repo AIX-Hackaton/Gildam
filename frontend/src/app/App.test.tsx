@@ -30,7 +30,7 @@ describe('App', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: '차 없이도 충분한 전남 당일치기 여행',
+        name: '차 없이도 충분한 전남의 하루',
       }),
     ).toBeInTheDocument()
   })

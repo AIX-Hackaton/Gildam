@@ -25,10 +25,10 @@ export function CourseMetrics({ course, variant }: CourseMetricsProps) {
           { label: '예상 시간', value: formatDuration(course.durationMinutes) },
         ]
       : [
-          { label: '총 소요', value: formatDuration(course.durationMinutes) },
-          { label: '총 도보', value: `${course.walkingMinutes}분` },
-          { label: '환승', value: `${course.transferCount}회` },
           { label: '피로도', value: fatigueLabels[course.fatigueLevel] },
+          { label: '환승', value: `${course.transferCount}회` },
+          { label: '총 도보', value: `${course.walkingMinutes}분` },
+          { label: '예상 시간', value: formatDuration(course.durationMinutes) },
         ]
 
   return (

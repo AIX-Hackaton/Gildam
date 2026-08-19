@@ -1,5 +1,6 @@
 .timeline {
   display: grid;
+  gap: 28px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -8,73 +9,65 @@
 .timeline li {
   position: relative;
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  gap: var(--space-3);
-  min-height: 96px;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 20px;
 }
 
 .timeline li:not(:last-child)::before {
   position: absolute;
-  top: 18px;
-  bottom: 0;
-  left: 6px;
+  top: 10px;
+  bottom: -28px;
+  left: 4px;
   width: 2px;
-  background: var(--color-primary-100);
+  background: #ddefc7;
   content: '';
 }
 
 .marker {
   position: relative;
   z-index: 1;
-  width: 14px;
-  height: 14px;
-  margin-top: 4px;
-  border: 3px solid var(--color-surface);
+  width: 10px;
+  height: 10px;
+  margin-top: 7px;
+  border: 2px solid #fff;
   border-radius: 50%;
-  background: var(--color-accent-coral);
-  box-shadow: 0 0 0 1px #bf5b3d;
+  background: #87aa37;
+  box-shadow: 0 0 0 1px #87aa37;
 }
 
 .content {
-  padding-bottom: var(--space-5);
-}
-
-.meta {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 45%) auto minmax(0, 1fr);
   align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: 6px;
-}
-
-.time {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-caption);
-  font-weight: 700;
+  gap: 12px;
 }
 
 .type {
-  padding: 5px 9px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
-  color: var(--color-primary-800);
-  background: var(--color-primary-50);
-  font-size: var(--font-size-caption);
-  font-weight: 600;
+  color: #636c64;
+  background: #eceee9;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
 .duration {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-caption);
+  justify-self: end;
+  color: #968d88;
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
 .content h3 {
   margin: 0;
-  font-size: 1.0625rem;
-}
-
-.content p {
-  margin: var(--space-1) 0 0;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-caption);
-  line-height: 1.55;
+  color: #706661;
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.025em;
+  word-break: keep-all;
 }

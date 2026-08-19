@@ -27,8 +27,8 @@
 
 .card {
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-2);
-  padding: var(--space-1) 0;
+  gap: 4px;
+  padding: 0;
 }
 
 .card > div {
@@ -36,20 +36,67 @@
 }
 
 .card dt {
+  margin-bottom: 4px;
+  color: #706661;
   font-size: 0.75rem;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: -0.025em;
   white-space: nowrap;
 }
 
 .card dd {
-  font-size: 1rem;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
+.card > div:first-child dd {
+  color: var(--color-recommendation-positive);
+}
+
+.card > div:last-child {
+  padding-right: 12px;
+}
+
+.card > div:last-child dd {
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
 .detail {
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-subtle);
+  gap: 16px 12px;
+  padding: 16px 8px;
+  border-radius: 15px;
+  background: #f4f9ee;
+}
+
+.detail > div {
+  text-align: center;
+}
+
+.detail dt {
+  margin-bottom: 4px;
+  color: #706661;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: -0.025em;
+}
+
+.detail dd {
+  color: #4d433d;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.025em;
+}
+
+.detail > div:first-child dd {
+  color: #44b739;
 }
 
 @media (max-width: 350px) {
@@ -62,7 +109,7 @@
   }
 
   .card dd {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     letter-spacing: -0.04em;
   }
 }
