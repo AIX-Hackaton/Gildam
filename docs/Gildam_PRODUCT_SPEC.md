@@ -361,6 +361,7 @@ MVP는 광주 출발 전남 당일치기 여행을 대상으로 하지만, 향�
 - 총 도보시간
 - 환승 횟수
 - 귀가 상태 뱃지 (`FEASIBLE`은 `귀가 가능`, `TIGHT`은 `귀가 빠듯`)
+- 귀가 교통 유형과 발권 방식에 따른 핵심 행동 안내
 - 추천 이유 2~3개
 - `코스 자세히 보기` 버튼
 
@@ -399,12 +400,26 @@ MVP는 광주 출발 전남 당일치기 여행을 대상으로 하지만, 향�
 2. 핵심 태그와 귀가 상태 뱃지
 3. 이동 피로도
 4. 예상 소요시간, 총 도보시간, 환승 횟수
-5. 추천 이유
-6. 코스 순서
-7. 지역 음식
-8. 로컬 포인트
-9. 오늘 담아볼 장면
-10. 지도 보기 또는 길찾기 CTA
+5. 귀가 시간과 데이터 신뢰도
+6. 추천 이유
+7. 코스 순서
+8. 지역 음식
+9. 로컬 포인트
+10. 오늘 담아볼 장면
+11. 지도 보기 또는 길찾기 CTA
+
+### 귀가 정보
+
+- 귀가 가능 여부와 당일 재확인 필요 여부를 함께 표시한다.
+- 기준 출발과 계획 귀가를 한 쌍으로 표시한다.
+- 배차형은 출발 전 버스 도착정보 확인, 현장 발권형은 승차권 확보, 예약형은
+  사전 예약을 안내한다. 사용자 문구에는 `BIS` 약어를 그대로 노출하지 않는다.
+- 귀가 교통 기준은 배차형·계획 회차형·예약형을 구분해 표현하며 모든 유형을
+  `막차`로 통합하지 않는다.
+- 귀가 교통 안내는 `returnTransport.note`에서 한 문장만 표시한다.
+- 코스 전체 출처와 내부 가공 데이터베이스는 귀가 정보의 출처로 표시하지 않는다.
+  귀가 교통 전용 원천 출처가 구조화되기 전까지 출처 영역은 노출하지 않는다.
+- 누락된 값은 임의로 추정하지 않고 해당 항목만 숨긴다.
 
 ### 코스 순서
 
@@ -640,6 +655,30 @@ interface Course {
 
   recommendationReasons: string[];
 
+  returnFeasibility: {
+    status: "FEASIBLE" | "TIGHT" | "NOT_FEASIBLE";
+    confidence: "CONFIRMED" | "NEEDS_DAY_OF_CHECK" | "UNVERIFIED";
+    departureTime: string;
+    plannedReturnTime: string;
+    latestReturnTime: string;
+    slackMinutes: number;
+    bookingRequired: boolean;
+    returnTransport: {
+      type: "HEADWAY_SERVICE" | "SCHEDULED_SERVICE" | "RESERVATION_REQUIRED";
+      ticketingModel: "PAY_ON_BOARD" | "ONSITE_TICKET" | "ADVANCE_RESERVATION";
+      requiresDayOfCheck: boolean;
+    };
+  };
+
+  manualChecks: string[];
+  sources: Array<{
+    label: string;
+    url: string;
+    checkedDate: string;
+    verificationStatus: string;
+  }>;
+  dataSnapshotDate: string;
+
   itinerary: Array<{
     id: string;
     name: string;
@@ -852,7 +891,9 @@ Codex는 작업 시 다음 규칙을 따른다.
 - [ ] 필수값이 없을 때 추천 버튼이 비활성화된다.
 - [ ] 추천 결과에서 조건을 충족한 코스가 최대 3위까지 순서대로 구분된다.
 - [ ] 코스 카드에서 이동 정보와 추천 이유를 확인할 수 있다.
+- [ ] 결과 카드에서 귀가 교통 유형에 맞는 핵심 행동을 확인할 수 있다.
 - [ ] 코스 상세에서 전체 일정과 지역 정보를 확인할 수 있다.
+- [ ] 코스 상세에서 기준 일정과 귀가 교통 유형에 맞는 행동 안내를 확인할 수 있다.
 - [ ] 지도 버튼이 올바른 외부 URL을 연다.
 - [ ] 결과 없음에서 조건 입력으로 돌아갈 수 있다.
 - [ ] 오류 화면에서 다시 시도할 수 있다.
