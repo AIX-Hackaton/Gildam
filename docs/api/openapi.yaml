@@ -412,6 +412,16 @@ components:
         thumbnailUrl:
           type: string
           title: Thumbnailurl
+        thumbnailCredit:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Thumbnailcredit
+        thumbnailPlace:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Thumbnailplace
         tags:
           items:
             type: string
@@ -593,6 +603,16 @@ components:
         thumbnailUrl:
           type: string
           title: Thumbnailurl
+        thumbnailCredit:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Thumbnailcredit
+        thumbnailPlace:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Thumbnailplace
         tags:
           items:
             type: string
