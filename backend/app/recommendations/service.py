@@ -101,6 +101,7 @@ def _collect_exclusion_reasons(
     request: RecommendationRequest,
     feasibility: dict[str, Any],
     fatigue: dict[str, Any],
+    mode: exposure.ExposureMode,
 ) -> list[ExclusionReason]:
     reasons: list[ExclusionReason] = []
 
@@ -112,7 +113,17 @@ def _collect_exclusion_reasons(
             )
         )
 
-    if SERVICE_DAY not in course.get("applicableDays", []):
+    verification_status = course.get("verificationStatus")
+    applicable_days = course.get("applicableDays", [])
+    day_is_confirmed_unavailable = verification_status in {
+        "TEMPORARILY_UNAVAILABLE",
+        "BLOCKED",
+    } or (verification_status == "VERIFIED" and SERVICE_DAY not in applicable_days)
+    # 데모(INTERNAL)는 토요일 운행 미확인을 2차 확인 경고로 다룹니다.
+    # 확인된 미운영 상태와 PUBLIC의 미확인 요일은 계속 차단합니다.
+    if day_is_confirmed_unavailable or (
+        mode == "PUBLIC" and SERVICE_DAY not in applicable_days
+    ):
         reasons.append(
             ExclusionReason(
                 code="DAY_NOT_SUPPORTED",
@@ -210,15 +221,17 @@ def _factor(score: float, key: str, explanation: str) -> dict[str, Any]:
 
 
 def _local_resource_score(course: dict[str, Any]) -> tuple[float, str]:
-    content_count = len(course.get("localFood", [])) + len(
-        course.get("localPoints", [])
-    )
-    coverage = _clamp(content_count / 4)
+    # 행을 잘게 쪼갠 코스가 점수를 더 받지 않도록 레코드 *개수*가 아니라
+    # 음식·로컬 설명 두 범주의 충족 여부를 사용합니다.
+    has_food = bool(course.get("localFood"))
+    has_local_point = bool(course.get("localPoints"))
+    covered_categories = int(has_food) + int(has_local_point)
+    coverage = covered_categories / 2
     quality = VERIFICATION_QUALITY.get(course["verificationStatus"], 0.6)
     score = _clamp(0.4 + coverage * 0.6) * quality
 
     return score, (
-        f"지역 음식·로컬 포인트 {content_count}건, "
+        f"지역 음식·로컬 포인트 {covered_categories}/2개 범주, "
         f"데이터 검증상태 {course['verificationStatus']} 반영"
     )
 
@@ -367,7 +380,9 @@ def _build_summary(
 
 
 def _count_matches(
-    courses: list[dict[str, Any]], request: RecommendationRequest
+    courses: list[dict[str, Any]],
+    request: RecommendationRequest,
+    mode: exposure.ExposureMode,
 ) -> int:
     count = 0
 
@@ -375,14 +390,18 @@ def _count_matches(
         fatigue = resolve_fatigue(course)
         feasibility = evaluate_return_feasibility(course, request.duration)
 
-        if not _collect_exclusion_reasons(course, request, feasibility, fatigue):
+        if not _collect_exclusion_reasons(
+            course, request, feasibility, fatigue, mode
+        ):
             count += 1
 
     return count
 
 
 def _build_suggestions(
-    courses: list[dict[str, Any]], request: RecommendationRequest
+    courses: list[dict[str, Any]],
+    request: RecommendationRequest,
+    mode: exposure.ExposureMode,
 ) -> list[RecommendationSuggestion]:
     """조건 하나만 바꿨을 때 결과가 생기는지 실제로 계산해 안내합니다."""
 
@@ -390,7 +409,7 @@ def _build_suggestions(
 
     if request.duration == "SIX_HOURS":
         relaxed = request.model_copy(update={"duration": "FULL_DAY"})
-        count = _count_matches(courses, relaxed)
+        count = _count_matches(courses, relaxed, mode)
         if count:
             suggestions.append(
                 RecommendationSuggestion(
@@ -402,7 +421,7 @@ def _build_suggestions(
 
     if request.mobility != "ANY":
         relaxed = request.model_copy(update={"mobility": "ANY"})
-        count = _count_matches(courses, relaxed)
+        count = _count_matches(courses, relaxed, mode)
         if count:
             suggestions.append(
                 RecommendationSuggestion(
@@ -414,7 +433,7 @@ def _build_suggestions(
 
     all_preferences = ["NATURE_WALK", "HISTORY_CULTURE", "FOOD_MARKET", "MEMORY"]
     relaxed = request.model_copy(update={"preferences": all_preferences})
-    count = _count_matches(courses, relaxed)
+    count = _count_matches(courses, relaxed, mode)
     if count and count > 0 and len(request.preferences) < len(all_preferences):
         suggestions.append(
             RecommendationSuggestion(
@@ -428,7 +447,7 @@ def _build_suggestions(
         "GWANGJU_SONGJEONG" if request.departure == "USQUARE" else "USQUARE"
     )
     relaxed = request.model_copy(update={"departure": other_departure})
-    count = _count_matches(courses, relaxed)
+    count = _count_matches(courses, relaxed, mode)
     if count:
         label = "광주송정역" if other_departure == "GWANGJU_SONGJEONG" else "유스퀘어"
         suggestions.append(
@@ -491,7 +510,9 @@ def get_recommendations(
 
         fatigue = resolve_fatigue(course)
         feasibility = evaluate_return_feasibility(course, request.duration)
-        reasons = _collect_exclusion_reasons(course, request, feasibility, fatigue)
+        reasons = _collect_exclusion_reasons(
+            course, request, feasibility, fatigue, mode
+        )
 
         if reasons:
             exclusions.append(
@@ -520,7 +541,7 @@ def get_recommendations(
         item.pop("_sourceIndex", None)
 
     suggestions = (
-        _build_suggestions(recommendable, request) if not ranked else []
+        _build_suggestions(recommendable, request, mode) if not ranked else []
     )
 
     return RecommendationResponse(

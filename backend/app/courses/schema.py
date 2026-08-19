@@ -6,24 +6,40 @@
 이 모듈의 목적입니다.
 """
 
+from datetime import date
 from typing import Any, Iterable
+from urllib.parse import urlparse
+
+from backend.app.courses.lineage import RETURN_SEGMENT_REFERENCES
 
 SCHEMA_VERSION = "3.1"
 
 REQUIRED_FIELDS: tuple[str, ...] = (
+    "schemaVersion",
     "id",
     "title",
     "region",
+    "courseType",
     "departurePoint",
     "timeType",
     "applicableDays",
     "verificationStatus",
+    "verifiedDate",
+    "publishable",
     "exposureTier",
+    "isPrimary",
+    "thumbnailUrl",
+    "tags",
+    "recommendationReasons",
+    "description",
     "totalMinutes",
     "walkingMinutes",
     "transferCount",
+    "roundTripTransitMinutes",
     "itinerary",
     "preferences",
+    "primaryDestination",
+    "sources",
     "schedule",
 )
 
@@ -31,11 +47,22 @@ REQUIRED_SCHEDULE_FIELDS: tuple[str, ...] = (
     "departureTime",
     "plannedReturnTime",
     "latestReturnTime",
+    "returnTransport",
 )
 
 VALID_EXPOSURE_TIERS = {"PUBLIC", "MANUAL_REVIEW", "DEMO_ONLY", "BLOCKED"}
 VALID_TIME_TYPES = {"SIX_HOURS", "FULL_DAY"}
 VALID_DEPARTURES = {"USQUARE", "GWANGJU_SONGJEONG"}
+VALID_RETURN_TRANSPORT_TYPES = {
+    "HEADWAY_SERVICE",
+    "SCHEDULED_SERVICE",
+    "RESERVATION_REQUIRED",
+}
+VALID_TICKETING_MODELS = {
+    "PAY_ON_BOARD",
+    "ONSITE_TICKET",
+    "ADVANCE_RESERVATION",
+}
 
 
 class CourseSchemaError(ValueError):
@@ -51,6 +78,33 @@ def _range_is_ordered(value: Any) -> bool:
         return value["min"] <= value["plan"] <= value["max"]
     except TypeError:
         return False
+
+
+def _is_clock(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        hour, minute = (int(part) for part in value.split(":"))
+    except (TypeError, ValueError):
+        return False
+    return 0 <= hour <= 23 and 0 <= minute <= 59
+
+
+def _is_iso_date(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
+def _is_http_url(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    parsed = urlparse(value)
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
 def collect_course_problems(course: Any) -> list[str]:
@@ -82,6 +136,20 @@ def collect_course_problems(course: Any) -> list[str]:
     if course["departurePoint"] not in VALID_DEPARTURES:
         problems.append(f"unknown departurePoint: {course['departurePoint']}")
 
+    if not _is_iso_date(course["verifiedDate"]):
+        problems.append("verifiedDate must be an ISO date")
+
+    if not isinstance(course["publishable"], bool):
+        problems.append("publishable must be a boolean")
+
+    if not isinstance(course["isPrimary"], bool):
+        problems.append("isPrimary must be a boolean")
+
+    if not isinstance(course["roundTripTransitMinutes"], int) or course[
+        "roundTripTransitMinutes"
+    ] < 0:
+        problems.append("roundTripTransitMinutes must be a non-negative integer")
+
     if not _range_is_ordered(course["totalMinutes"]):
         problems.append("totalMinutes must satisfy min <= plan <= max")
 
@@ -93,14 +161,91 @@ def collect_course_problems(course: Any) -> list[str]:
         if not schedule.get(field):
             problems.append(f"missing required schedule field: {field}")
 
-    last_return = schedule.get("lastReturnDeparture")
-    last_return_status = schedule.get("lastReturnDepartureStatus")
-    if last_return and last_return_status not in {"VERIFIED", "OFFICIAL"}:
+    return_transport = schedule.get("returnTransport")
+    if isinstance(return_transport, dict):
+        transport_type = return_transport.get("type")
+        segment_id = return_transport.get("segmentId")
+        expected_segment = RETURN_SEGMENT_REFERENCES.get(course["id"])
+
+        if transport_type not in VALID_RETURN_TRANSPORT_TYPES:
+            problems.append(f"unknown returnTransport.type: {transport_type}")
+        if segment_id != expected_segment:
+            problems.append(
+                "returnTransport.segmentId must reference the spreadsheet's final "
+                f"transport segment ({segment_id!r} != {expected_segment!r})"
+            )
+        if return_transport.get("serviceDay") != "SATURDAY":
+            problems.append("returnTransport.serviceDay must be SATURDAY for this MVP")
+        if return_transport.get("ticketingModel") not in VALID_TICKETING_MODELS:
+            problems.append("returnTransport.ticketingModel is invalid")
+        if not isinstance(return_transport.get("requiresDayOfCheck"), bool):
+            problems.append("returnTransport.requiresDayOfCheck must be a boolean")
+        if not return_transport.get("sourceValueType"):
+            problems.append("returnTransport.sourceValueType is required")
+        if not return_transport.get("operatingModel"):
+            problems.append("returnTransport.operatingModel is required")
+
+        planned_departure = return_transport.get("plannedDeparture")
+        alternatives = return_transport.get("alternativeDepartures") or []
+
+        if transport_type == "HEADWAY_SERVICE":
+            headway = return_transport.get("headwayMinutes")
+            if not isinstance(headway, int) or headway <= 0:
+                problems.append("HEADWAY_SERVICE requires a positive headwayMinutes")
+            if planned_departure is not None:
+                problems.append("HEADWAY_SERVICE must not invent a plannedDeparture")
+            if not _is_clock(return_transport.get("plannedBoardingAfter")):
+                problems.append(
+                    "HEADWAY_SERVICE requires a valid plannedBoardingAfter"
+                )
+        elif transport_type == "SCHEDULED_SERVICE":
+            if not _is_clock(planned_departure):
+                problems.append("SCHEDULED_SERVICE requires a valid plannedDeparture")
+            if not all(_is_clock(value) for value in alternatives):
+                problems.append("all alternativeDepartures must use HH:MM")
+        elif transport_type == "RESERVATION_REQUIRED":
+            if return_transport.get("ticketingModel") != "ADVANCE_RESERVATION":
+                problems.append(
+                    "RESERVATION_REQUIRED requires ADVANCE_RESERVATION ticketing"
+                )
+
+    legacy_return_fields = {
+        "lastReturnDeparture",
+        "lastReturnDepartureStatus",
+        "lastReturnDepartureSource",
+    }
+    populated_legacy_fields = sorted(legacy_return_fields.intersection(schedule))
+    if populated_legacy_fields:
         problems.append(
-            "lastReturnDeparture may only be populated from a VERIFIED or OFFICIAL source"
+            "legacy last-return fields are prohibited; use returnTransport: "
+            + ", ".join(populated_legacy_fields)
         )
 
     itinerary = course["itinerary"]
+    itinerary_ids = [item.get("id") for item in itinerary]
+    if len(itinerary_ids) != len(set(itinerary_ids)):
+        problems.append("itinerary item IDs must be unique within a course")
+
+    for item in itinerary:
+        duration = item.get("durationMinutes")
+        if not item.get("id") or not item.get("type"):
+            problems.append("every itinerary item needs id and type")
+        if not isinstance(duration, int) or duration < 0:
+            problems.append(
+                f"itinerary durationMinutes must be non-negative: {item.get('id')}"
+            )
+
+    for source in course["sources"]:
+        if not all(
+            source.get(field)
+            for field in ("label", "url", "checkedDate", "verificationStatus")
+        ):
+            problems.append("every source needs label, url, checkedDate and status")
+            continue
+        if not _is_http_url(source["url"]):
+            problems.append(f"source URL must be http(s): {source['url']!r}")
+        if not _is_iso_date(source["checkedDate"]):
+            problems.append(f"source checkedDate must be ISO: {source['checkedDate']!r}")
     itinerary_total = sum(item.get("durationMinutes") or 0 for item in itinerary)
     plan_total = course["totalMinutes"].get("plan")
 
@@ -141,9 +286,19 @@ def validate_courses(courses: Iterable[Any]) -> tuple[list[dict], list[dict]]:
     valid: list[dict] = []
     diagnostics: list[dict] = []
 
+    seen_ids: set[str] = set()
+
     for index, course in enumerate(courses):
         problems = collect_course_problems(course)
         course_id = course.get("id") if isinstance(course, dict) else None
+
+        # 스키마가 깨진 행은 유효 ID를 선점하지 않습니다. 그래야 뒤에 있는 정상
+        # 원본 행까지 중복으로 오판해 제거하지 않습니다.
+        if not problems:
+            if course_id in seen_ids:
+                problems.append(f"duplicate course id: {course_id}")
+            elif course_id:
+                seen_ids.add(course_id)
 
         if problems:
             diagnostics.append(

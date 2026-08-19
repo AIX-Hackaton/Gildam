@@ -77,6 +77,13 @@
   color: var(--color-accent, #2f6b9a);
 }
 
+.transportNote {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--color-text-muted, #64748b);
+}
+
 .messages {
   margin: 0;
   padding-left: 18px;

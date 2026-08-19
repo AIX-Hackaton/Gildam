@@ -4,7 +4,7 @@ openapi: 3.1.0
 info:
   title: Gildam API
   description: 길담 MVP API입니다. 검증된 코스 DB(schema v3.1)를 원천으로 조건 필터링·귀가 가능성 검증·설명 가능한 추천을 제공합니다.
-  version: 0.3.0
+  version: 0.4.0
 paths:
   /health:
     get:
@@ -34,6 +34,18 @@ paths:
                 additionalProperties: true
                 type: object
                 title: Response Read Condition Options Api Meta Conditions Get
+  /api/meta/data-lineage:
+    get:
+      summary: Read Data Lineage
+      description: 'Track #1 원자료 약속과 실제 시트·코드·화면 사용처를 반환합니다.'
+      operationId: read_data_lineage_api_meta_data_lineage_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataLineageResponse'
   /api/courses/{course_id}:
     get:
       summary: Read Course Detail
@@ -445,6 +457,120 @@ components:
       - scoreBreakdown
       - returnFeasibility
       title: CourseRecommendationSummary
+    DataLineageResponse:
+      properties:
+        schemaVersion:
+          type: string
+          title: Schemaversion
+        catalogVersion:
+          type: string
+          title: Catalogversion
+        policy:
+          type: string
+          title: Policy
+        sheetSnapshot:
+          $ref: '#/components/schemas/SheetSnapshotLineage'
+        summary:
+          $ref: '#/components/schemas/DataLineageSummary'
+        track1Datasets:
+          items:
+            $ref: '#/components/schemas/Track1DatasetLineage'
+          type: array
+          title: Track1Datasets
+        featureLineage:
+          items:
+            $ref: '#/components/schemas/FeatureDataLineage'
+          type: array
+          title: Featurelineage
+        supplementarySources:
+          items:
+            $ref: '#/components/schemas/SupplementarySourceLineage'
+          type: array
+          title: Supplementarysources
+        knownGaps:
+          items:
+            type: string
+          type: array
+          title: Knowngaps
+        diagnostics:
+          items:
+            type: string
+          type: array
+          title: Diagnostics
+      type: object
+      required:
+      - schemaVersion
+      - catalogVersion
+      - policy
+      - sheetSnapshot
+      - summary
+      - track1Datasets
+      - featureLineage
+      - supplementarySources
+      - knownGaps
+      - diagnostics
+      title: DataLineageResponse
+    DataLineageSummary:
+      properties:
+        catalogDatasetCount:
+          type: integer
+          title: Catalogdatasetcount
+        proposalSelectedCount:
+          type: integer
+          title: Proposalselectedcount
+        traceableUsedCount:
+          type: integer
+          title: Traceableusedcount
+        referenceOnlyCount:
+          type: integer
+          title: Referenceonlycount
+        evidenceRequiredCount:
+          type: integer
+          title: Evidencerequiredcount
+        deferredCount:
+          type: integer
+          title: Deferredcount
+        outOfScopeCount:
+          type: integer
+          title: Outofscopecount
+        supplementarySourceCount:
+          type: integer
+          title: Supplementarysourcecount
+        claimableTrack1DatasetIds:
+          items:
+            type: string
+          type: array
+          title: Claimabletrack1Datasetids
+        lineageInvalidCount:
+          type: integer
+          title: Lineageinvalidcount
+        registryStatus:
+          type: string
+          enum:
+          - VALID
+          - INVALID
+          title: Registrystatus
+        claimReadiness:
+          type: string
+          enum:
+          - READY_TO_CLAIM
+          - EVIDENCE_GAPS
+          title: Claimreadiness
+      type: object
+      required:
+      - catalogDatasetCount
+      - proposalSelectedCount
+      - traceableUsedCount
+      - referenceOnlyCount
+      - evidenceRequiredCount
+      - deferredCount
+      - outOfScopeCount
+      - supplementarySourceCount
+      - claimableTrack1DatasetIds
+      - lineageInvalidCount
+      - registryStatus
+      - claimReadiness
+      title: DataLineageSummary
     DataSource:
       properties:
         label:
@@ -622,6 +748,53 @@ components:
       - contribution
       - threshold
       title: FatigueFactorModel
+    FeatureDataLineage:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        sheetSelectors:
+          items:
+            type: string
+          type: array
+          title: Sheetselectors
+        snapshotFields:
+          items:
+            type: string
+          type: array
+          title: Snapshotfields
+        transformation:
+          type: string
+          title: Transformation
+        codeConsumers:
+          items:
+            type: string
+          type: array
+          title: Codeconsumers
+        apiFields:
+          items:
+            type: string
+          type: array
+          title: Apifields
+        uiSurfaces:
+          items:
+            type: string
+          type: array
+          title: Uisurfaces
+      type: object
+      required:
+      - id
+      - name
+      - sheetSelectors
+      - snapshotFields
+      - transformation
+      - codeConsumers
+      - apiFields
+      - uiSurfaces
+      title: FeatureDataLineage
     HTTPValidationError:
       properties:
         detail:
@@ -636,6 +809,11 @@ components:
         id:
           type: string
           title: Id
+        sourceRecordId:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Sourcerecordid
         name:
           type: string
           title: Name
@@ -994,6 +1172,20 @@ components:
       - code
       - message
       title: RecommendationSuggestion
+    ReturnDepartureWindow:
+      properties:
+        start:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Start
+        end:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: End
+      type: object
+      title: ReturnDepartureWindow
     ReturnFeasibilityModel:
       properties:
         status:
@@ -1036,20 +1228,12 @@ components:
           - type: string
           - type: 'null'
           title: Lastactivityendtime
-        lastReturnDeparture:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Lastreturndeparture
-        lastReturnSlackMinutes:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Lastreturnslackminutes
         bookingRequired:
           type: boolean
           title: Bookingrequired
           default: false
+        returnTransport:
+          $ref: '#/components/schemas/ReturnTransportModel'
         messages:
           items:
             type: string
@@ -1066,6 +1250,7 @@ components:
       - worstCaseTotalMinutes
       - allowedMinutes
       - slackMinutes
+      - returnTransport
       title: ReturnFeasibilityModel
     ReturnMarginScoreFactor:
       properties:
@@ -1096,6 +1281,101 @@ components:
       - slackMinutes
       - status
       title: ReturnMarginScoreFactor
+    ReturnTransportModel:
+      properties:
+        type:
+          type: string
+          enum:
+          - HEADWAY_SERVICE
+          - SCHEDULED_SERVICE
+          - RESERVATION_REQUIRED
+          - UNSPECIFIED
+          title: Type
+        segmentId:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Segmentid
+        serviceDay:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Serviceday
+        plannedDeparture:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Planneddeparture
+        plannedBoardingAfter:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Plannedboardingafter
+        alternativeDepartures:
+          items:
+            type: string
+          type: array
+          title: Alternativedepartures
+        departureWindow:
+          anyOf:
+          - $ref: '#/components/schemas/ReturnDepartureWindow'
+          - type: 'null'
+        headwayMinutes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Headwayminutes
+        ticketingModel:
+          anyOf:
+          - type: string
+            enum:
+            - PAY_ON_BOARD
+            - ONSITE_TICKET
+            - ADVANCE_RESERVATION
+          - type: 'null'
+          title: Ticketingmodel
+        stationArrivalBufferMinutes:
+          type: integer
+          title: Stationarrivalbufferminutes
+          default: 0
+        verificationStatus:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Verificationstatus
+        requiresDayOfCheck:
+          type: boolean
+          title: Requiresdayofcheck
+          default: true
+        sourceValueType:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Sourcevaluetype
+        operatingModel:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Operatingmodel
+        note:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Note
+        selectedDeparture:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Selecteddeparture
+        selectedDepartureSlackMinutes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Selecteddepartureslackminutes
+      type: object
+      required:
+      - type
+      title: ReturnTransportModel
     RouteLink:
       properties:
         order:
@@ -1121,6 +1401,195 @@ components:
       - transitUrl
       - walkUrl
       title: RouteLink
+    SheetSnapshotLineage:
+      properties:
+        spreadsheetId:
+          type: string
+          title: Spreadsheetid
+        title:
+          type: string
+          title: Title
+        url:
+          type: string
+          title: Url
+        snapshotDate:
+          type: string
+          title: Snapshotdate
+        schemaVersion:
+          type: string
+          title: Schemaversion
+        tabs:
+          items:
+            $ref: '#/components/schemas/SheetTabLineage'
+          type: array
+          title: Tabs
+      type: object
+      required:
+      - spreadsheetId
+      - title
+      - url
+      - snapshotDate
+      - schemaVersion
+      - tabs
+      title: SheetSnapshotLineage
+    SheetTabLineage:
+      properties:
+        name:
+          type: string
+          title: Name
+        gid:
+          type: integer
+          title: Gid
+        recordKey:
+          type: string
+          title: Recordkey
+      type: object
+      required:
+      - name
+      - gid
+      - recordKey
+      title: SheetTabLineage
+    SupplementarySourceLineage:
+      properties:
+        label:
+          type: string
+          title: Label
+        url:
+          type: string
+          title: Url
+        courseIds:
+          items:
+            type: string
+          type: array
+          title: Courseids
+        checkedDates:
+          items:
+            type: string
+          type: array
+          title: Checkeddates
+        verificationStatuses:
+          items:
+            type: string
+          type: array
+          title: Verificationstatuses
+        sourceClass:
+          type: string
+          const: SUPPLEMENTARY_SOURCE
+          title: Sourceclass
+      type: object
+      required:
+      - label
+      - url
+      - courseIds
+      - checkedDates
+      - verificationStatuses
+      - sourceClass
+      title: SupplementarySourceLineage
+    Track1DatasetLineage:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        provider:
+          type: string
+          title: Provider
+        dataType:
+          type: string
+          title: Datatype
+        catalogUrl:
+          type: string
+          title: Catalogurl
+        topicOutlinePage:
+          type: integer
+          title: Topicoutlinepage
+        suggestedUse:
+          type: string
+          title: Suggesteduse
+        proposalRole:
+          type: string
+          title: Proposalrole
+        proposalPages:
+          items:
+            type: integer
+          type: array
+          title: Proposalpages
+        usageStatus:
+          type: string
+          enum:
+          - TRACEABLE_USED
+          - REFERENCE_ONLY
+          - EVIDENCE_REQUIRED
+          - DEFERRED
+          - OUT_OF_SCOPE_MVP
+          title: Usagestatus
+        currentDecision:
+          type: string
+          title: Currentdecision
+        targetSheetTabs:
+          items:
+            type: string
+          type: array
+          title: Targetsheettabs
+        codeConsumers:
+          items:
+            type: string
+          type: array
+          title: Codeconsumers
+        apiFields:
+          items:
+            type: string
+          type: array
+          title: Apifields
+        uiSurfaces:
+          items:
+            type: string
+          type: array
+          title: Uisurfaces
+        sourceRecordKeys:
+          items:
+            type: string
+          type: array
+          title: Sourcerecordkeys
+        sourceSnapshot:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Sourcesnapshot
+        analysisResults:
+          items:
+            type: string
+          type: array
+          title: Analysisresults
+        nextEvidence:
+          items:
+            type: string
+          type: array
+          title: Nextevidence
+      type: object
+      required:
+      - id
+      - name
+      - provider
+      - dataType
+      - catalogUrl
+      - topicOutlinePage
+      - suggestedUse
+      - proposalRole
+      - proposalPages
+      - usageStatus
+      - currentDecision
+      - targetSheetTabs
+      - codeConsumers
+      - apiFields
+      - uiSurfaces
+      - sourceRecordKeys
+      - analysisResults
+      - nextEvidence
+      title: Track1DatasetLineage
     ValidationError:
       properties:
         loc:
@@ -1136,6 +1605,11 @@ components:
         type:
           type: string
           title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
       type: object
       required:
       - loc

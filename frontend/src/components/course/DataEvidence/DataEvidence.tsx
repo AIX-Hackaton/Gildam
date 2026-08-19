@@ -20,6 +20,12 @@ export function DataEvidence({ course }: DataEvidenceProps) {
     <section className={styles.evidence}>
       <h2>데이터 근거와 이용 전 확인</h2>
 
+      {course.verificationStatus !== 'VERIFIED' ? (
+        <p className={styles.meta}>
+          2차 확인 필요 · 데모에서는 추천되지만 실제 출발 전 아래 항목을 다시 확인해 주세요.
+        </p>
+      ) : null}
+
       <p className={styles.meta}>
         검증상태 {verificationLabels[course.verificationStatus ?? ''] ??
           course.verificationStatus}{' '}

@@ -1,5 +1,9 @@
 # 길담 UI 구현 명세서
 
+> 이 문서는 초기 UI 설계 참고본입니다. 현재 실데이터·API·노출 정책은
+> `docs/Gildam_PRODUCT_SPEC.md`, `docs/DATA_INTEGRATION.md`,
+> `docs/DATA_PROVENANCE.md`를 우선합니다. 아래 Mock Data 단계는 이미 종료되었습니다.
+
 > 기준 이미지: `docs/reference/gildam-ui-reference.png`  
 > 이 문서는 길담 모바일 웹/PWA의 UI를 Codex가 일관되게 구현할 수 있도록 화면 구조, 디자인 토큰, 컴포넌트, 상태, 데이터 계약과 완료 조건을 정의한다.  
 > 구현 전 `PRODUCT_SPEC.md`와 이 문서를 함께 읽는다.

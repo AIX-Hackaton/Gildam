@@ -5,7 +5,9 @@
 
 - 데이터 기준일: **2026-08-06**
 - 스키마 버전: **v3.1**
-- 원천: 길담 코스 검증 스프레드시트 (후보 장소 / 교통 구간 / 코스 일정 / 코스 요약 / 개발 JSON 탭)
+- 원천: 길담 코스 검증 스프레드시트 (후보 장소 / 로컬 설명 / 교통 구간 /
+  코스 일정 / 코스 요약 / 식사 후보 / 개발 JSON / 대체·보류 코스 탭)
+- Track #1 원자료별 사용·보류·증거 상태: [`DATA_PROVENANCE.md`](DATA_PROVENANCE.md)
 
 ---
 
@@ -57,7 +59,10 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 4. `sum(itinerary[].durationMinutes) == totalMinutes.plan`
 5. `sum(도보 구간) == walkingMinutes.plan`
 6. `itinerary`의 환승 표시 개수 == `transferCount`
-7. `lastReturnDeparture`가 있으면 검증상태가 `VERIFIED` 또는 `OFFICIAL`
+7. 폐기한 `lastReturnDeparture*` 필드가 다시 들어오면 오류 (`returnTransport`만 허용)
+8. API가 소비하는 공개·검증·이미지·설명·왕복교통·목적지·출처 필드 존재
+9. 귀가 교통 유형별 필수값과 `returnTransport.segmentId`의 시트 구간ID 일치
+10. 일정 ID·코스 ID 중복, 출처 URL·확인일 형식
 
 검증: `python -m backend.app.courses.schema` (CI에서 자동 실행)
 
@@ -69,28 +74,36 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 
 - 허용 시간: 제품 명세 그대로 `SIX_HOURS = 360분`, `FULL_DAY = 720분`
 - 여유(`slackMinutes`)는 계획값이 아니라 **최악값(`totalMinutes.max`)** 기준으로 계산합니다.
-- 시간 총량만 보지 않고, **마지막 일정 종료 시각이 막차 출발 시각보다 앞서는지**를 함께 검사합니다.
-  (막차 시각 − (마지막 일정 종료 + `returnBufferMinutes`) ≥ 0)
+- 시간 총량과 **시트의 마지막 귀가 구간**을 함께 검사합니다.
+- 귀가편을 막차 한 필드로 합치지 않고 다음 세 유형으로 보존합니다.
+
+| 유형 | 대상 | 구조화한 값 | 판정 방식 |
+|---|---|---|---|
+| `HEADWAY_SERVICE` | 담양 | 13:30 이후, 주말 20분 배차, BIS 확인 | 절대 막차를 만들지 않고 당일 확인 경고 |
+| `SCHEDULED_SERVICE` | 나주 | 계획·대체 회차, 현장예매 | 마지막 활동 종료+승차 여유 뒤 이용 가능한 회차 선택 |
+| `RESERVATION_REQUIRED` | 목포 | 왕복 선예매, 역 복귀 여유 | 고정 시각 대신 이용일 예매편을 정본으로 사용 |
 
 | 상태 | 조건 |
 |---|---|
 | `FEASIBLE` | 최악값 기준으로도 여유가 30분 이상 |
 | `TIGHT` | 계획값은 들어오지만 최악값 기준 여유가 30분 미만(음수 포함) |
-| `NOT_FEASIBLE` | **계획값**이 허용 시간 초과 / 막차를 놓침 / 막차 정보 미확인 |
+| `NOT_FEASIBLE` | **계획값**이 허용 시간 초과 / 확인된 귀가편을 놓침 |
 
 `NOT_FEASIBLE`은 추천 결과에서 제외됩니다. `TIGHT`은 제외하지 않되, 왜 빠듯한지를
 화면에 그대로 표기합니다. (예: DY_LOW_01 — 계획 354분, 최악 396분, 여유 −36분)
 
-막차 정보가 아예 없으면 "아마 될 것"으로 넘기지 않고 **추천에서 뺍니다.**
+INTERNAL 데모에서는 막차·토요일 운행 등 미확인 항목을 추천 차단에 사용하지 않고
+`2차 확인 필요` 경고로 표시합니다. PUBLIC은 `publishable=TRUE`만 허용합니다.
 
 | confidence | 의미 |
 |---|---|
-| `CONFIRMED` | 막차 시각 공식 확인 완료 |
-| `NEEDS_DAY_OF_CHECK` | 값은 있으나 공식 확정 전 — 추천 제외 |
-| `UNVERIFIED` | 확인 불가 → `NOT_FEASIBLE` 처리 |
+| `CONFIRMED` | 귀가 구간이 공식 확인됐고 이용일 재확인이 필요 없음 |
+| `NEEDS_DAY_OF_CHECK` | 공식 확정 전 — INTERNAL 조건부 추천 + 2차 확인 알림 |
+| `UNVERIFIED` | 근거 부족 — 현재 데이터에는 사용하지 않으며 2차 확인 대상으로 취급 |
 
-> ⚠️ **현재 한계**: 시트에는 담양·나주·목포 귀가편의 공식 막차 시각이 없습니다.
-> 코드도 이를 `None/UNVERIFIED`로 보존하며, 공식 확인 전에는 추천하지 않습니다.
+> 시트에 공식 막차 시각은 없지만 귀가 교통 데이터가 없는 것은 아닙니다. 각 코스의
+> 마지막 교통 구간에 배차간격·계획/대체 회차·예약 조건이 있습니다. 코드는 이를
+> `returnTransport`로 보존하며 INTERNAL에서는 2차 확인 안내를 붙입니다.
 
 ---
 
@@ -136,8 +149,8 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 |---|---|---|
 | 취향 일치 | 0.35 | 선택한 취향과 코스 태그의 겹침 |
 | 이동 부담 | 0.30 | 도보·환승이 적을수록 높음 |
-| 귀가 여유 | 0.15 | 막차까지 남는 시간 |
-| 지역 자원 | 0.12 | 지역 음식·로컬 포인트 밀도 |
+| 귀가 여유 | 0.15 | 사용자가 선택한 가능 시간에서 최악 소요시간을 뺀 여유 |
+| 지역 자원 | 0.12 | 지역 음식·로컬 포인트 두 범주의 충족률과 검증상태 |
 | 기록 적합성 | 0.08 | 사진·기록 포인트 |
 
 `scoreBreakdown`으로 요소별 원점수·가중치·기여도가 응답에 포함되며, 합은 총점과 일치합니다.
@@ -162,7 +175,8 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 3. `python -m backend.app.courses.schema` 통과 확인
 4. `python -m unittest discover -s backend/tests -t . -p "test_*.py"`
 5. 응답 스키마가 바뀌었다면 `python scripts/export_openapi.py`
-6. 이 문서의 표와 한계 항목 갱신
+6. `python -m backend.app.courses.lineage`로 계보 레지스트리 검사
+7. 이 문서와 `DATA_PROVENANCE.md` 갱신
 
 ---
 
@@ -171,8 +185,9 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 | 항목 | 상태 |
 |---|---|
 | 교통 구간 약 49%가 `NEEDS_RECHECK` | 지도 실측 대기 |
-| 담양·나주·목포 귀가편 | 막차 시각 없음, 공식 확인 전 추천 제외 |
+| 담양·나주·목포 귀가편 | 배차·계획회차·예약 데이터는 반영, INTERNAL은 2차 확인 경고 |
 | MP_NORMAL_02 | `NEEDS_RECHECK` — 목포 2024-02 노선 개편 반영 검증 중 |
 | MP_NORMAL_01 | `BLOCKED` 유지 |
 | 311-1 지선 국도 노선 변경(2026-05) | 담양 코스 영향 모니터링 필요 |
 | 전 코스 `publishable=FALSE` | 대외 공개 전 재검증 필요 |
+| Track #1 제품 사용 계보 | 현재 추적 가능한 실사용 0건; A-DS18은 범위 감사만 완료, A-DS13·01·11은 원본 근거 연결 필요 |

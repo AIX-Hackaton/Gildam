@@ -30,6 +30,7 @@ class CourseDestination(BaseModel):
 
 class ItineraryItem(BaseModel):
     id: str
+    sourceRecordId: str | None = None
     name: str
     type: ItineraryItemType
     time: str | None = None
@@ -61,6 +62,97 @@ class DataSource(BaseModel):
     url: str
     checkedDate: str
     verificationStatus: str
+
+
+class Track1DatasetLineage(BaseModel):
+    id: str
+    name: str
+    provider: str
+    dataType: str
+    catalogUrl: str
+    topicOutlinePage: int
+    suggestedUse: str
+    proposalRole: str
+    proposalPages: list[int]
+    usageStatus: Literal[
+        "TRACEABLE_USED",
+        "REFERENCE_ONLY",
+        "EVIDENCE_REQUIRED",
+        "DEFERRED",
+        "OUT_OF_SCOPE_MVP",
+    ]
+    currentDecision: str
+    targetSheetTabs: list[str]
+    codeConsumers: list[str]
+    apiFields: list[str]
+    uiSurfaces: list[str]
+    sourceRecordKeys: list[str]
+    sourceSnapshot: dict[str, object] | None = None
+    analysisResults: list[str]
+    nextEvidence: list[str]
+
+
+class FeatureDataLineage(BaseModel):
+    id: str
+    name: str
+    sheetSelectors: list[str]
+    snapshotFields: list[str]
+    transformation: str
+    codeConsumers: list[str]
+    apiFields: list[str]
+    uiSurfaces: list[str]
+
+
+class SupplementarySourceLineage(BaseModel):
+    label: str
+    url: str
+    courseIds: list[str]
+    checkedDates: list[str]
+    verificationStatuses: list[str]
+    sourceClass: Literal["SUPPLEMENTARY_SOURCE"]
+
+
+class DataLineageSummary(BaseModel):
+    catalogDatasetCount: int
+    proposalSelectedCount: int
+    traceableUsedCount: int
+    referenceOnlyCount: int
+    evidenceRequiredCount: int
+    deferredCount: int
+    outOfScopeCount: int
+    supplementarySourceCount: int
+    claimableTrack1DatasetIds: list[str]
+    lineageInvalidCount: int
+    registryStatus: Literal["VALID", "INVALID"]
+    claimReadiness: Literal["READY_TO_CLAIM", "EVIDENCE_GAPS"]
+
+
+class SheetTabLineage(BaseModel):
+    name: str
+    gid: int
+    recordKey: str
+
+
+class SheetSnapshotLineage(BaseModel):
+    spreadsheetId: str
+    title: str
+    url: str
+    snapshotDate: str
+    schemaVersion: str
+    tabs: list[SheetTabLineage]
+
+
+class DataLineageResponse(BaseModel):
+    schemaVersion: str
+    catalogVersion: str
+    policy: str
+    sheetSnapshot: SheetSnapshotLineage
+    summary: DataLineageSummary
+    track1Datasets: list[Track1DatasetLineage]
+    featureLineage: list[FeatureDataLineage]
+    supplementarySources: list[SupplementarySourceLineage]
+    knownGaps: list[str]
+    diagnostics: list[str]
 
 
 class FatigueFactorModel(BaseModel):
@@ -96,10 +188,43 @@ class ReturnFeasibilityModel(BaseModel):
     allowedMinutes: int
     slackMinutes: int
     lastActivityEndTime: str | None = None
-    lastReturnDeparture: str | None = None
-    lastReturnSlackMinutes: int | None = None
     bookingRequired: bool = False
+    returnTransport: "ReturnTransportModel"
     messages: list[str] = Field(default_factory=list)
+
+
+class ReturnDepartureWindow(BaseModel):
+    start: str | None = None
+    end: str | None = None
+
+
+class ReturnTransportModel(BaseModel):
+    type: Literal[
+        "HEADWAY_SERVICE",
+        "SCHEDULED_SERVICE",
+        "RESERVATION_REQUIRED",
+        "UNSPECIFIED",
+    ]
+    segmentId: str | None = None
+    serviceDay: str | None = None
+    plannedDeparture: str | None = None
+    plannedBoardingAfter: str | None = None
+    alternativeDepartures: list[str] = Field(default_factory=list)
+    departureWindow: ReturnDepartureWindow | None = None
+    headwayMinutes: int | None = None
+    ticketingModel: Literal[
+        "PAY_ON_BOARD",
+        "ONSITE_TICKET",
+        "ADVANCE_RESERVATION",
+    ] | None = None
+    stationArrivalBufferMinutes: int = 0
+    verificationStatus: str | None = None
+    requiresDayOfCheck: bool = True
+    sourceValueType: str | None = None
+    operatingModel: str | None = None
+    note: str | None = None
+    selectedDeparture: str | None = None
+    selectedDepartureSlackMinutes: int | None = None
 
 
 class ExposureNotice(BaseModel):

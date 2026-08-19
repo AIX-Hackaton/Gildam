@@ -6,8 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.app.courses import exposure
-from backend.app.courses.data import DATA_SNAPSHOT_DATE, DATA_SOURCE_URL
-from backend.app.courses.models import CourseDetailResponse
+from backend.app.courses.data import DATA_SNAPSHOT_DATE, DATA_SOURCE_URL, SCHEMA_VERSION
+from backend.app.courses.lineage import build_lineage_report
+from backend.app.courses.models import CourseDetailResponse, DataLineageResponse
 from backend.app.courses.service import (
     get_schema_diagnostics,
     get_valid_courses,
@@ -22,7 +23,7 @@ from backend.app.recommendations.service import get_recommendations
 
 app = FastAPI(
     title="Gildam API",
-    version="0.3.0",
+    version="0.4.0",
     description=(
         "길담 MVP API입니다. 검증된 코스 DB(schema v3.1)를 원천으로 "
         "조건 필터링·귀가 가능성 검증·설명 가능한 추천을 제공합니다."
@@ -86,7 +87,7 @@ async def validation_exception_handler(
         content={
             **_error_body(
                 "INVALID_REQUEST",
-                "요청 조건이 올바르지 않습니다. 출발지·가능 시간·취향을 다시 선택해 주세요.",
+                "요청 조건이 올바르지 않습니다. 출발지·가능 시간·취향·이동 부담을 다시 선택해 주세요.",
             ),
             "errors": [
                 {"field": ".".join(str(part) for part in error.get("loc", [])),
@@ -150,6 +151,7 @@ def health_check() -> dict[str, object]:
 
     courses = get_valid_courses()
     diagnostics = get_schema_diagnostics()
+    lineage = build_lineage_report(courses)
     mismatches = [
         {
             "courseId": course["id"],
@@ -163,6 +165,7 @@ def health_check() -> dict[str, object]:
 
     return {
         "status": "ok",
+        "schemaVersion": SCHEMA_VERSION,
         "dataSnapshotDate": DATA_SNAPSHOT_DATE,
         "dataSourceUrl": DATA_SOURCE_URL,
         "exposureMode": exposure.get_exposure_mode(),
@@ -185,6 +188,7 @@ def health_check() -> dict[str, object]:
         "schemaInvalidCount": len(diagnostics),
         "schemaDiagnostics": diagnostics,
         "fatigueMismatches": mismatches,
+        "dataLineage": lineage["summary"],
         "demoFailureEnabled": _demo_failure_enabled(),
     }
 
@@ -215,6 +219,13 @@ def read_condition_options() -> dict[str, object]:
         ],
         "serviceDay": "SATURDAY",
     }
+
+
+@app.get("/api/meta/data-lineage", response_model=DataLineageResponse)
+def read_data_lineage() -> DataLineageResponse:
+    """Track #1 원자료 약속과 실제 시트·코드·화면 사용처를 반환합니다."""
+
+    return DataLineageResponse(**build_lineage_report(get_valid_courses()))
 
 
 @app.get("/api/courses/{course_id}", response_model=CourseDetailResponse)

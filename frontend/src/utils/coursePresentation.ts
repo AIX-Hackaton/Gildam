@@ -27,9 +27,9 @@ export const feasibilityLabels: Record<FeasibilityStatus, string> = {
 }
 
 export const confidenceLabels: Record<FeasibilityConfidence, string> = {
-  CONFIRMED: '막차 확인 완료',
-  NEEDS_DAY_OF_CHECK: '당일 확인 필요',
-  UNVERIFIED: '막차 미확인',
+  CONFIRMED: '귀가편 확인 완료',
+  NEEDS_DAY_OF_CHECK: '2차 확인 필요',
+  UNVERIFIED: '2차 확인 필요',
 }
 
 export function formatDuration(minutes: number) {

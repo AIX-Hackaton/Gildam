@@ -4,12 +4,13 @@
 
 총 소요시간만 보는 것이 아니라
 1. 사용자가 입력한 가능 시간 안에 **최악값**으로도 일정이 끝나는지,
-2. 마지막 관광지에서 나온 시각이 **막차/막 열차 출발시각**보다 앞서는지,
-3. 예매가 필요한 구간이라면 그 사실이 사용자에게 전달되는지
+2. 귀가 구간이 **배차형/계획 회차형/예약형** 중 무엇인지,
+3. 계획·대체 회차를 탈 수 있는지와 예매·당일 확인 행동이 전달되는지
 를 함께 판정합니다.
 
-막차 정보가 공식 확인되지 않은 코스는 "가능"이라고 단정하지 않고
-``confidence`` 를 낮춰 사용자에게 재확인 항목으로 노출합니다.
+이용일 확인이 필요한 코스는 시간 산술 판정을 덮어쓰지 않고 ``confidence``를
+낮춰 사용자에게 2차 확인 항목으로 노출합니다. 서로 다른 운영 모델을 다시 하나의
+막차 필드로 합치는 사고를 막기 위해 ``lastReturnDeparture``는 사용하지 않습니다.
 """
 
 from typing import Any, Literal, TypedDict
@@ -37,9 +38,8 @@ class ReturnFeasibility(TypedDict):
     allowedMinutes: int
     slackMinutes: int
     lastActivityEndTime: str | None
-    lastReturnDeparture: str | None
-    lastReturnSlackMinutes: int | None
     bookingRequired: bool
+    returnTransport: dict[str, Any]
     messages: list[str]
 
 
@@ -113,7 +113,9 @@ def evaluate_return_feasibility(
     else:
         status = "FEASIBLE"
 
-    # 2. 마지막 귀가 교통편을 실제로 탈 수 있는가?
+    # 2. 시트의 마지막 교통 구간을 유형별로 판정합니다. 배차형에는 '막차'가
+    # 없고, 계획회차형에는 계획·대체 회차가 있으며, 예약형은 이용일 예매편이
+    # 정본입니다. 이 세 경우를 하나의 lastReturnDeparture로 합치지 않습니다.
     departure_minutes = parse_clock(departure_time)
     return_leg = _return_leg_minutes(course, "max")
     buffer_minutes = int(schedule.get("returnBufferMinutes") or 0)
@@ -122,40 +124,81 @@ def evaluate_return_feasibility(
     if departure_minutes is not None:
         last_activity_end_minutes = departure_minutes + worst_total - return_leg
 
-    last_return_departure = schedule.get("lastReturnDeparture")
-    last_return_minutes = parse_clock(last_return_departure)
-    last_return_slack: int | None = None
+    raw_transport = schedule.get("returnTransport") or {}
+    transport_type = raw_transport.get("type") or "UNSPECIFIED"
+    planned_transport_departure = raw_transport.get("plannedDeparture")
+    alternative_departures = list(raw_transport.get("alternativeDepartures") or [])
+    scheduled_candidates = [
+        value
+        for value in [planned_transport_departure, *alternative_departures]
+        if parse_clock(value) is not None
+    ]
+    selected_transport_departure: str | None = None
+    scheduled_slack: int | None = None
 
-    if last_activity_end_minutes is not None and last_return_minutes is not None:
-        last_return_slack = last_return_minutes - (
-            last_activity_end_minutes + buffer_minutes
+    if transport_type == "SCHEDULED_SERVICE" and last_activity_end_minutes is not None:
+        boarding_deadline = last_activity_end_minutes + int(
+            raw_transport.get("stationArrivalBufferMinutes") or buffer_minutes
         )
+        for candidate in scheduled_candidates:
+            candidate_minutes = parse_clock(candidate)
+            if candidate_minutes is not None and candidate_minutes >= boarding_deadline:
+                selected_transport_departure = candidate
+                scheduled_slack = candidate_minutes - boarding_deadline
+                break
 
-        if last_return_slack < 0:
+        if scheduled_candidates and selected_transport_departure is None:
             status = "NOT_FEASIBLE"
             messages.append(
-                "마지막 일정이 끝나는 시각이 막차 출발시각보다 늦어 당일 귀가가 불가능합니다."
+                "계획·대체 귀가 회차 전에 승차 지점에 도착할 수 없어 당일 귀가가 불가능합니다."
+            )
+        elif (
+            selected_transport_departure
+            and planned_transport_departure
+            and selected_transport_departure != planned_transport_departure
+        ):
+            messages.append(
+                f"계획 회차를 놓치면 {selected_transport_departure} 대체 회차를 이용해야 합니다."
             )
 
-    # 3. 귀가편 정보의 신뢰도. 시트에 없는 추정 시각으로 추천을 허용하지 않습니다.
-    last_return_status = schedule.get("lastReturnDepartureStatus")
+    # 3. 귀가편 정보의 신뢰도. 데이터 유형과 검증상태를 섞지 않습니다.
+    transport_verification = raw_transport.get("verificationStatus")
+    needs_day_of_check = bool(raw_transport.get("requiresDayOfCheck", True))
 
-    if last_return_status in {"VERIFIED", "OFFICIAL"}:
+    if (
+        transport_verification in {"VERIFIED", "OFFICIAL"}
+        and not needs_day_of_check
+    ):
         confidence: FeasibilityConfidence = "CONFIRMED"
-    elif last_return_minutes is None:
-        confidence = "UNVERIFIED"
-        messages.append(
-            "마지막 귀가 교통편이 공식 확인되지 않아 당일 귀가를 보장할 수 없습니다."
-        )
-        status = "NOT_FEASIBLE"
     else:
         confidence = "NEEDS_DAY_OF_CHECK"
         messages.append(
-            "막차 시각은 공식 확인 전 값이라 이용일 당일 도착정보를 반드시 확인해 주세요."
+            "귀가 교통편은 2차 확인이 필요합니다. 출발 전에 당일 운행·예매 정보를 확인해 주세요."
         )
-        status = "NOT_FEASIBLE"
 
-    booking_required = bool(schedule.get("bookingRequired"))
+    if transport_type == "HEADWAY_SERVICE":
+        headway = raw_transport.get("headwayMinutes")
+        window = raw_transport.get("departureWindow") or {}
+        boarding_after = raw_transport.get("plannedBoardingAfter") or window.get("start")
+        messages.append(
+            f"귀가편은 {boarding_after or '일정 종료'} 이후 약 {headway}분 배차형입니다. 막차 추정값 대신 당일 BIS 도착정보를 확인합니다."
+        )
+    elif transport_type == "SCHEDULED_SERVICE":
+        alternatives = ", ".join(alternative_departures)
+        detail = f"계획 귀가 회차는 {planned_transport_departure}입니다."
+        if alternatives:
+            detail += f" 대체 회차는 {alternatives}입니다."
+        messages.append(detail)
+    elif transport_type == "RESERVATION_REQUIRED":
+        messages.append(
+            "귀가편은 고정 막차 추정이 아니라 이용일에 왕복 교통편을 먼저 예약해 확정합니다."
+        )
+
+    ticketing_model = raw_transport.get("ticketingModel")
+    booking_required = bool(schedule.get("bookingRequired")) or ticketing_model in {
+        "ONSITE_TICKET",
+        "ADVANCE_RESERVATION",
+    }
     if booking_required:
         booking_note = schedule.get("bookingNote")
         messages.append(
@@ -174,8 +217,11 @@ def evaluate_return_feasibility(
         allowedMinutes=allowed,
         slackMinutes=slack,
         lastActivityEndTime=format_clock(last_activity_end_minutes),
-        lastReturnDeparture=last_return_departure,
-        lastReturnSlackMinutes=last_return_slack,
         bookingRequired=booking_required,
+        returnTransport={
+            **raw_transport,
+            "selectedDeparture": selected_transport_departure,
+            "selectedDepartureSlackMinutes": scheduled_slack,
+        },
         messages=messages,
     )

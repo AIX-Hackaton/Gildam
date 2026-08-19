@@ -45,10 +45,40 @@ export interface ReturnFeasibility {
   allowedMinutes: number
   slackMinutes: number
   lastActivityEndTime?: string | null
-  lastReturnDeparture?: string | null
-  lastReturnSlackMinutes?: number | null
   bookingRequired: boolean
+  returnTransport: ReturnTransport
   messages: string[]
+}
+
+export interface ReturnTransport {
+  type:
+    | 'HEADWAY_SERVICE'
+    | 'SCHEDULED_SERVICE'
+    | 'RESERVATION_REQUIRED'
+    | 'UNSPECIFIED'
+  segmentId?: string | null
+  serviceDay?: string | null
+  plannedDeparture?: string | null
+  plannedBoardingAfter?: string | null
+  alternativeDepartures: string[]
+  departureWindow?: {
+    start?: string | null
+    end?: string | null
+  } | null
+  headwayMinutes?: number | null
+  ticketingModel?:
+    | 'PAY_ON_BOARD'
+    | 'ONSITE_TICKET'
+    | 'ADVANCE_RESERVATION'
+    | null
+  stationArrivalBufferMinutes: number
+  verificationStatus?: string | null
+  requiresDayOfCheck: boolean
+  sourceValueType?: string | null
+  operatingModel?: string | null
+  note?: string | null
+  selectedDeparture?: string | null
+  selectedDepartureSlackMinutes?: number | null
 }
 
 export interface RecommendationScoreFactor {
@@ -110,6 +140,7 @@ export interface CourseSummary {
 
 export interface ItineraryItem {
   id: string
+  sourceRecordId?: string | null
   time?: string
   name: string
   type: 'transport' | 'walk' | 'place' | 'food'

@@ -29,6 +29,14 @@ class CourseDetailApiTest(unittest.TestCase):
         self.assertEqual(data["departurePointName"], "유스퀘어(광주종합버스터미널)")
         self.assertTrue(data["manualChecks"])
         self.assertTrue(data["sources"])
+        self.assertEqual(
+            data["returnFeasibility"]["returnTransport"]["segmentId"],
+            "NJ_LOW_01-S2",
+        )
+        self.assertEqual(
+            data["returnFeasibility"]["returnTransport"]["plannedDeparture"],
+            "13:05",
+        )
 
     def test_directions_url_prefills_origin_and_destination(self) -> None:
         """멘토 코멘트 대응: 출발지를 사용자가 직접 입력하지 않도록 합니다."""
@@ -69,13 +77,15 @@ class CourseDetailApiTest(unittest.TestCase):
         self.assertIsNone(get_course_detail("unknown-course"))
         self.assertIsNone(get_course_detail("MP_NORMAL_01"))
 
-    def test_unverified_return_transport_blocks_both_duration_options(self) -> None:
+    def test_duration_and_return_confidence_are_independent(self) -> None:
         six = self.client.get("/api/courses/DY_NORMAL_01?duration=SIX_HOURS").json()
         full = self.client.get("/api/courses/DY_NORMAL_01?duration=FULL_DAY").json()
 
         self.assertEqual(six["returnFeasibility"]["status"], "NOT_FEASIBLE")
-        self.assertEqual(full["returnFeasibility"]["status"], "NOT_FEASIBLE")
-        self.assertEqual(full["returnFeasibility"]["confidence"], "UNVERIFIED")
+        self.assertEqual(full["returnFeasibility"]["status"], "FEASIBLE")
+        self.assertEqual(
+            full["returnFeasibility"]["confidence"], "NEEDS_DAY_OF_CHECK"
+        )
 
 
 class DataIntegrityTest(unittest.TestCase):
@@ -104,33 +114,33 @@ class DataIntegrityTest(unittest.TestCase):
         self.assertEqual(len(valid), len(COURSE_DETAILS))
         self.assertEqual(len(diagnostics), 1)
 
-    def test_primary_courses_do_not_invent_last_return_times(self) -> None:
+    def test_primary_courses_use_structured_transport_not_legacy_last_bus(self) -> None:
         for course in get_valid_courses():
             with self.subTest(course=course["id"]):
                 if course.get("isPrimary"):
-                    self.assertIsNone(course["schedule"]["lastReturnDeparture"])
-                    self.assertEqual(
-                        course["schedule"]["lastReturnDepartureStatus"], "UNVERIFIED"
-                    )
+                    self.assertNotIn("lastReturnDeparture", course["schedule"])
+                    self.assertNotIn("lastReturnDepartureStatus", course["schedule"])
+                    self.assertIn("returnTransport", course["schedule"])
 
-    def test_feasibility_marks_unverified_last_bus_as_not_feasible(self) -> None:
+    def test_day_dependent_return_transport_becomes_a_second_check_warning(self) -> None:
         broken = copy.deepcopy(COURSE_DETAILS[0])
-        broken["schedule"]["lastReturnDeparture"] = None
-        broken["schedule"]["lastReturnDepartureStatus"] = "BLOCKED"
+        broken["schedule"]["returnTransport"]["verificationStatus"] = "NEEDS_RECHECK"
+        broken["schedule"]["returnTransport"]["requiresDayOfCheck"] = True
 
         result = evaluate_return_feasibility(broken, "FULL_DAY")
 
-        self.assertEqual(result["status"], "NOT_FEASIBLE")
-        self.assertEqual(result["confidence"], "UNVERIFIED")
+        self.assertEqual(result["status"], "FEASIBLE")
+        self.assertEqual(result["confidence"], "NEEDS_DAY_OF_CHECK")
+        self.assertTrue(any("2차 확인" in message for message in result["messages"]))
 
-    def test_feasibility_detects_missing_last_bus_window(self) -> None:
-        late = copy.deepcopy(COURSE_DETAILS[0])
-        late["schedule"]["lastReturnDeparture"] = "10:00"
-        late["schedule"]["lastReturnDepartureStatus"] = "VERIFIED"
+    def test_schema_rejects_reintroduced_legacy_last_bus_fields(self) -> None:
+        broken = copy.deepcopy(COURSE_DETAILS[0])
+        broken["schedule"]["lastReturnDeparture"] = "20:00"
+        broken["schedule"]["lastReturnDepartureStatus"] = "VERIFIED"
 
-        result = evaluate_return_feasibility(late, "FULL_DAY")
+        problems = collect_course_problems(broken)
 
-        self.assertEqual(result["status"], "NOT_FEASIBLE")
+        self.assertTrue(any("legacy last-return fields" in item for item in problems))
 
 
 class HealthAndDemoFailureTest(unittest.TestCase):
@@ -148,6 +158,9 @@ class HealthAndDemoFailureTest(unittest.TestCase):
         self.assertEqual(data["publishableCourseCount"], 0)
         self.assertIn("MP_NORMAL_01", data["blockedCourseIds"])
         self.assertEqual(data["dataSnapshotDate"], "2026-08-06")
+        self.assertEqual(data["schemaVersion"], "3.1")
+        self.assertEqual(data["dataLineage"]["registryStatus"], "VALID")
+        self.assertEqual(data["dataLineage"]["claimReadiness"], "EVIDENCE_GAPS")
 
     def test_condition_metadata_is_served(self) -> None:
         data = self.client.get("/api/meta/conditions").json()

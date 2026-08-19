@@ -6,7 +6,8 @@
 FastAPI로 구현되어 있고, 계산 규칙(피로도·귀가 가능성·노출 정책)은 프레임워크와 분리된
 순수 함수로 두어 DB나 실제 API가 붙어도 그대로 재사용할 수 있습니다.
 
-데이터가 어디서 왔고 어떤 규칙으로 검증되는지는 [`docs/DATA_INTEGRATION.md`](../docs/DATA_INTEGRATION.md)를 참고하세요.
+데이터가 어디서 왔고 어떤 규칙으로 검증되는지는 [`docs/DATA_INTEGRATION.md`](../docs/DATA_INTEGRATION.md),
+Track #1 원자료의 실제 사용상태는 [`docs/DATA_PROVENANCE.md`](../docs/DATA_PROVENANCE.md)를 참고하세요.
 
 ## Quick Start
 
@@ -19,6 +20,7 @@ python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
 
 - `http://127.0.0.1:8001/health` — 서버 상태 + 데이터 정합성 요약
 - `http://127.0.0.1:8001/api/meta/conditions` — 조건 선택지 정의
+- `http://127.0.0.1:8001/api/meta/data-lineage` — Track #1 원자료→시트→코드→화면 계보
 - `http://127.0.0.1:8001/api/courses/NJ_LOW_01`
 - `http://127.0.0.1:8001/docs`
 
@@ -34,15 +36,16 @@ python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
 
 ```bash
 python -m backend.app.courses.schema                                   # 데이터 정합성
+python -m backend.app.courses.lineage                                  # 데이터 계보 정합성
 python -m unittest discover -s backend/tests -t . -p "test_*.py"       # 전체 테스트
 python scripts/export_openapi.py --check                               # 명세 동기화 확인
 ```
 
 검증 범위:
 
-- 공식 귀가편 미확인 코스의 안전한 추천 제외
+- 공식 귀가편 미확인 코스의 INTERNAL 조건부 추천과 2차 확인 경고
 - 조건 조합 전수 테스트로 `BLOCKED` 코스 비노출 보장
-- 귀가 가능성 판정(막차 미확인 = 추천 제외)
+- 귀가 가능성 판정(시간 초과는 제외, 이용일 귀가편은 2차 확인 경고)
 - 이동 부담(mobility) 필터 반응성
 - 스키마 위반 코스가 앱을 죽이지 않고 조용히 제외되는지
 - 결과 없음일 때 실제로 가능한 대안 개수 산출
@@ -66,7 +69,14 @@ python scripts/export_openapi.py --check                               # 명세 
   "publishableCourseCount": 0,
   "schemaInvalidCount": 0,
   "blockedCourseIds": ["MP_NORMAL_01"],
-  "fatigueMismatches": [...]
+  "fatigueMismatches": [...],
+  "dataLineage": {
+    "catalogDatasetCount": 19,
+    "traceableUsedCount": 0,
+    "referenceOnlyCount": 1,
+    "evidenceRequiredCount": 3,
+    "lineageInvalidCount": 0
+  }
 }
 ```
 
@@ -75,8 +85,14 @@ python scripts/export_openapi.py --check                               # 명세 
 
 ### `GET /api/meta/conditions`
 
-조건 선택지(출발지·시간·취향)의 단일 정의입니다. API의 `mobility`는 호환용 선택 필드이며 프론트 입력에는 노출하지 않습니다. 프론트엔드 하드코딩이
+조건 선택지(출발지·시간·취향·이동 부담)의 단일 정의입니다. 프론트엔드 하드코딩이
 백엔드와 어긋나는 것을 막습니다.
+
+### `GET /api/meta/data-lineage`
+
+주제개요서의 `A-DS01`~`A-DS19` 전체와 초기 기획의 선택 여부, 현재 실제 사용·증거 필요·
+보류·범위외 상태, 시트→코드→API→화면 경로를 반환합니다. 원본 레코드 키가 없는
+데이터는 `TRACEABLE_USED`로 표시하지 않습니다.
 
 ### `GET /api/courses/{course_id}`
 
@@ -94,10 +110,11 @@ curl "http://127.0.0.1:8001/api/courses/NJ_LOW_01?duration=SIX_HOURS"
 
 - 기본 정보: `id`, `schemaVersion`, `title`, `region`, `tags`
 - 이동 정보: `durationMinutes`, `walkingMinutes`, `transferCount`,
-  `totalMinutesRange`, `walkingMinutesRange`
+  `totalMinutes`, `walkingMinutesRange`
 - 피로도: `fatigueLevel`, `fatigueScore`, `fatigueExplanation`(요소별 기여도·임계값·산식)
-- 귀가 가능성: `returnFeasibility`(상태, 신뢰도, 허용 시간, 최악값, 여유 시간, 막차)
-- 데이터 근거: `verificationStatus`, `verifiedAt`, `manualChecks`, `cautions`, `sources`
+- 귀가 가능성: `returnFeasibility`(상태, 신뢰도, 허용 시간, 최악값, 여유 시간,
+  `returnTransport` 배차형·계획회차형·예약형)
+- 데이터 근거: `verificationStatus`, `verifiedDate`, `manualChecks`, `cautions`, `sources`
 - 지도: `kakaoMapUrl`, `kakaoDirectionsUrl`, `routeLinks`(구간별 링크 배열)
 - 콘텐츠: `description`, `itinerary`, `localFood`, `localPoints`, `scenePrompts`
 - 노출 안내: `exposureNotice`(내부 검토 중인 코스일 때만)
@@ -157,6 +174,7 @@ backend/
 │  │  ├─ schema.py               데이터 정합성 검증 (+ CLI)
 │  │  ├─ exposure.py             노출 정책 단일 판단 지점
 │  │  ├─ feasibility.py          귀가 가능성 판정
+│  │  ├─ lineage.py              Track #1 원자료 레지스트리·사용 계보 검증
 │  │  ├─ fatigue.py              피로도 계산과 설명
 │  │  ├─ kakao_map.py            지도·구간별 길찾기 링크
 │  │  ├─ models.py               Pydantic 응답 모델
@@ -175,7 +193,7 @@ backend/
 → ① 스키마 검증 통과 코스만 남김
 → ② 노출 정책 적용 (BLOCKED 제거)
 → ③ 출발지 / 운영 요일 필터
-→ ④ 가능 시간 + 귀가 가능성 필터 (최악값 + 막차 기준)
+→ ④ 가능 시간 + 귀가 가능성 필터 (최악값 + 배차/계획회차/예약 정책)
 → ⑤ 이동 부담(mobility) 필터
 → ⑥ 취향 필터 후 가중 점수 산정
 → 상위 3건 + 제외 사유 + (없으면) 대안 제안
