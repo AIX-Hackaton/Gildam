@@ -24,6 +24,10 @@ export function CourseDetailContent({ course }: CourseDetailContentProps) {
   const returnFeasibilityLabel = getReturnFeasibilityLabel(
     course.returnFeasibility.status,
   )
+  const returnFeasibilityClassName =
+    course.returnFeasibility.status === 'FEASIBLE'
+      ? styles.returnAvailable
+      : styles.returnTight
 
   return (
     <>
@@ -43,7 +47,9 @@ export function CourseDetailContent({ course }: CourseDetailContentProps) {
                 <span key={tag}>{formatCompactLabel(tag)}</span>
               ))}
               {returnFeasibilityLabel ? (
-                <span>{returnFeasibilityLabel}</span>
+                <span className={returnFeasibilityClassName}>
+                  {returnFeasibilityLabel}
+                </span>
               ) : null}
             </div>
           </section>

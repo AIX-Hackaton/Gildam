@@ -43,6 +43,7 @@ RecommendationResults
 | 카드 이미지 | 높이 213px, 카드 폭보다 넓게 채운 뒤 중앙 상단 기준으로 자름 |
 | 카드 본문 | 패딩 16px, 항목 간격 24px |
 | 지표 | 같은 폭의 4열 중앙 정렬. `예상 시간` 열의 오른쪽 패딩은 12px |
+| 핀뱃지 | 흰 배경, `#D3C7C0` 1px 테두리, 좌우 10px·상하 8px, pill 형태, 간격 5px |
 | CTA | 폭 100%, 시각 높이 40px, pill 형태 |
 
 제목→조건 칩과 조건 칩→대표 카드의 간격은 각각 32px이다. 390px에서 본문 폭은 350px이다.
@@ -60,8 +61,11 @@ RecommendationResults
 |---|---|---|
 | Text primary | `#4D433D` | 제목, 지표 값, 섹션 제목 |
 | Text secondary | `#706661` | 지표 레이블, 추천 이유 본문 |
-| Chip background | `#DDEFC7` | 조건 칩, 코스 태그 |
-| Chip text | `#124216` | 칩 텍스트 |
+| Chip background | `#FFFFFF` | 조건 칩, 코스 태그, 귀가 상태 뱃지 |
+| Chip border | `#D3C7C0` | 핀뱃지 외곽선 |
+| Chip text | `#706661` | 핀뱃지 텍스트 |
+| Return available | `#5B7F30` | `귀가가능` 뱃지 텍스트 |
+| Return tight | `#9B6816` | `귀가빠듯` 뱃지 텍스트 |
 | Positive | `#44B739` | 피로도 값 |
 | CTA base | `#87AA37` | 코스 상세 버튼 |
 

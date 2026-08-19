@@ -546,7 +546,8 @@ UI에서는 각 추천 이유 앞에 원형 불릿 `•`를 표시하고, 문장
 
 - 교통 구간 탭의 코스별 마지막 구간을 귀가 교통의 정본으로 사용한다.
 - 계산된 `returnFeasibility.status`가 `FEASIBLE`이면 `귀가가능`, `TIGHT`이면
-  `귀가빠듯` 뱃지를 표시한다. `NOT_FEASIBLE` 코스는 추천에서 제외한다.
+  `귀가빠듯` 뱃지를 표시한다. `귀가가능`은 초록색, `귀가빠듯`은 주황색 텍스트로
+  구분하며 `NOT_FEASIBLE` 코스는 추천에서 제외한다.
 - 귀가 교통은 `HEADWAY_SERVICE`, `SCHEDULED_SERVICE`,
   `RESERVATION_REQUIRED` 세 유형으로 보존한다.
 - 배차형의 배차간격을 막차 시각으로 해석하지 않는다.

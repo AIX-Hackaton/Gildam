@@ -22,6 +22,10 @@ export function CourseCard({
   const returnFeasibilityLabel = getReturnFeasibilityLabel(
     course.returnFeasibility.status,
   )
+  const returnFeasibilityClassName =
+    course.returnFeasibility.status === 'FEASIBLE'
+      ? styles.returnAvailable
+      : styles.returnTight
 
   return (
     <article className={`${styles.card} ${featured ? styles.featured : ''}`}>
@@ -47,7 +51,9 @@ export function CourseCard({
             </span>
           ))}
           {returnFeasibilityLabel ? (
-            <span className={styles.tag}>{returnFeasibilityLabel}</span>
+            <span className={`${styles.tag} ${returnFeasibilityClassName}`}>
+              {returnFeasibilityLabel}
+            </span>
           ) : null}
         </div>
 
