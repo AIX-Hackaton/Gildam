@@ -33,6 +33,8 @@ export interface CourseSummary {
   title: string
   region: string
   thumbnailUrl: string
+  thumbnailCredit?: string
+  thumbnailPlace?: string
   tags: string[]
   fatigueLevel: FatigueLevel
   fatigueScore?: number

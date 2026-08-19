@@ -33,8 +33,17 @@ export function CourseCard({
         <img
           className={styles.image}
           src={course.thumbnailUrl}
-          alt={`${course.title} 대표 풍경`}
+          alt={
+            course.thumbnailPlace
+              ? `${course.thumbnailPlace} 풍경`
+              : `${course.title} 대표 풍경`
+          }
         />
+        {course.thumbnailCredit ? (
+          <p className={styles.imageCredit}>
+            사진 제공 ({course.thumbnailCredit}) - 한국관광공사
+          </p>
+        ) : null}
       </div>
 
       <div className={styles.content}>

@@ -26,6 +26,12 @@ class CourseDetailApiTest(unittest.TestCase):
         self.assertEqual(data["schemaVersion"], "3.1")
         self.assertEqual(data["durationMinutes"], 289)
         self.assertEqual(data["transferCount"], 0)
+        self.assertEqual(data["thumbnailCredit"], "황성훈")
+        self.assertEqual(data["thumbnailPlace"], "금성관")
+        self.assertEqual(
+            data["thumbnailUrl"],
+            "/images/courses/NJ_LOW_01/황성훈_금성관.jpg",
+        )
         self.assertEqual(data["departurePointName"], "유스퀘어(광주종합버스터미널)")
         self.assertTrue(data["manualChecks"])
         self.assertTrue(data["sources"])

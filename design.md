@@ -17,15 +17,18 @@ RecommendationResults
    ├─ ResultHeading
    ├─ ConditionChipList
    ├─ FeaturedCourseCard
+   │  ├─ RankLabel
    │  ├─ CourseImage
+   │  │  └─ ImageCredit
    │  └─ CourseCardBody
    │     ├─ CourseTitle
    │     ├─ CourseMetrics (4 columns)
    │     ├─ CourseTagList
    │     ├─ RecommendationReasons
    │     └─ CourseDetailButton
-   └─ AlternativeCourseList
-      └─ CourseCard × 1–2
+   ├─ AlternativeCourseList
+      └─ RankLabel + CourseCard × 1–2
+   └─ ExclusionReasons
 ```
 
 - 컴포넌트는 데이터 책임을 기준으로 나눈다. 카드 내부 장식만을 위한 컴포넌트는 만들지 않는다.
@@ -39,9 +42,12 @@ RecommendationResults
 | 앱 배경 | `#FFFFFF` |
 | 헤더 | 높이 64px, 중앙 제목은 시각적으로 숨기고 뒤로가기만 노출 |
 | 본문 | 좌우 20px, 상단 16px, 주요 블록 간격 32px |
+| 순위 라벨 | 카드 밖 상단에 `추천 1위`~`추천 3위` 텍스트로 표시 |
+| 제외 이유 | 카드 목록 아래 접을 수 있는 텍스트 영역으로 표시, 최대 3개 코스 |
 | 대표 카드 | 폭 100%, 모서리 30px, 테두리 없음, `0 0 10px rgba(0,0,0,.1)` |
 | 카드 이미지 | 높이 213px, 카드 폭보다 넓게 채운 뒤 중앙 상단 기준으로 자름 |
 | 카드 본문 | 패딩 16px, 항목 간격 24px |
+| 이미지 출처 | 이미지 오른쪽·아래 10px에 흰색 70%로 표시 |
 | 지표 | 같은 폭의 4열 중앙 정렬. `예상 시간` 열의 오른쪽 패딩은 12px |
 | 핀뱃지 | 흰 배경, `#D3C7C0` 1px 테두리, 좌우 10px·상하 8px, pill 형태, 간격 5px |
 | CTA | 폭 100%, 시각 높이 40px, pill 형태 |
@@ -64,8 +70,12 @@ RecommendationResults
 | Chip background | `#FFFFFF` | 조건 칩, 코스 태그, 귀가 상태 뱃지 |
 | Chip border | `#D3C7C0` | 핀뱃지 외곽선 |
 | Chip text | `#706661` | 핀뱃지 텍스트 |
-| Return available | `#5B7F30` | `귀가가능` 뱃지 텍스트 |
-| Return tight | `#9B6816` | `귀가빠듯` 뱃지 텍스트 |
+| Return available text | `#5B7F30` | `귀가 가능` 뱃지 텍스트 |
+| Return available background | `#F1F6E8` | `귀가 가능` 뱃지 배경 |
+| Return available border | `#A7BF7A` | `귀가 가능` 뱃지 테두리 |
+| Return tight text | `#9B6816` | `귀가 빠듯` 뱃지 텍스트 |
+| Return tight background | `#FFF4E2` | `귀가 빠듯` 뱃지 배경 |
+| Return tight border | `#E1B46E` | `귀가 빠듯` 뱃지 테두리 |
 | Positive | `#44B739` | 피로도 값 |
 | CTA base | `#87AA37` | 코스 상세 버튼 |
 
@@ -80,7 +90,9 @@ RecommendationResults
 | 역할 | 크기 | 굵기 | 행간 / 자간 |
 |---|---:|---:|---|
 | 결과 제목 | 28px | 600 | normal / -2.5% |
+| 순위 라벨 | 14px | 600 | normal / -2.5% |
 | 카드 제목 | 20px | 600 | normal / -2.5% |
+| 이미지 출처 | 12px | 400 | normal / -2.5% |
 | 지표 값 | 14px | 500 | normal / -2.5% |
 | 추천 이유 제목 | 16px | 500 | normal / -2.5% |
 | CTA | 14px | 600 | normal |
@@ -96,8 +108,11 @@ RecommendationResults
 | 영역 | 규칙 | 예시 |
 |---|---|---|
 | 결과 제목 | 선택이 반영됐다는 완료형 문장 | `내 조건에 맞는 코스를 찾았어요` |
+| 순위 라벨 | 점수순 순위를 짧게 표기 | `추천 1위`, `추천 2위` |
+| 제외 이유 | 코스명과 사용자가 조정할 수 있는 조건 중심으로 표기 | `계획 시간이 선택한 시간을 초과해요` |
 | 조건 칩 | 선택값만 짧게 표기, 조사·문장부호 없음 | `유스퀘어`, `6시간`, `자연산책` |
 | 카드 제목 | 지역명 + 핵심 경험 + `코스` | `담양 느린 산책 코스` |
+| 이미지 출처 | 파일명의 첫 `_` 앞 제작자명을 사용 | `사진 제공 (오경택) - 한국관광공사` |
 | 지표 | `피로도`, `환승`, `총 도보`, `예상 시간` 순서 고정 | `보통`, `1회`, `24분`, `6시간` |
 | 태그 | 명사형 2–5자 권장, 최대 3개 우선 노출 | `자연산책`, `감성기록`, `음식` |
 | 추천 이유 | 한 줄에 한 이유, 짧고 구체적인 해요체 | `자연 산책 취향과 주요 장소가 잘 맞아요` |

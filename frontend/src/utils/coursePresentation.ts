@@ -25,7 +25,7 @@ export function formatRecommendationReason(reason: string) {
 }
 
 export function getReturnFeasibilityLabel(status: ReturnFeasibilityStatus) {
-  if (status === 'FEASIBLE') return '귀가가능'
-  if (status === 'TIGHT') return '귀가빠듯'
+  if (status === 'FEASIBLE') return '귀가 가능'
+  if (status === 'TIGHT') return '귀가 빠듯'
   return null
 }

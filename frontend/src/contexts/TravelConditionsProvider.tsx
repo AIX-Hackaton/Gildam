@@ -7,7 +7,12 @@ import {
 } from './travelConditionsContext.ts'
 
 function createDefaultConditions(): TravelConditions {
-  return { departure: null, duration: null, preferences: [] }
+  return {
+    departure: null,
+    duration: null,
+    preferences: [],
+    mobility: 'ANY',
+  }
 }
 
 interface TravelConditionsProviderProps {
@@ -26,6 +31,8 @@ export function TravelConditionsProvider({
         setConditions((current) => ({ ...current, departure })),
       setDuration: (duration) =>
         setConditions((current) => ({ ...current, duration })),
+      setMobility: (mobility) =>
+        setConditions((current) => ({ ...current, mobility })),
       togglePreference: (preference) =>
         setConditions((current) => ({
           ...current,

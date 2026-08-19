@@ -27,6 +27,18 @@
   object-position: center top;
 }
 
+.imageCredit {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  margin: 0;
+  color: rgb(255 255 255 / 70%);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: -0.025em;
+}
+
 .content {
   display: grid;
   gap: var(--space-6);
@@ -73,11 +85,17 @@
 }
 
 .returnAvailable {
+  border-color: var(--color-return-available-border);
   color: var(--color-success);
+  background: var(--color-return-available-background);
+  font-weight: 600;
 }
 
 .returnTight {
+  border-color: var(--color-return-tight-border);
   color: var(--color-warning);
+  background: var(--color-return-tight-background);
+  font-weight: 600;
 }
 
 .reasons h3 {

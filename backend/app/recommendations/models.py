@@ -85,6 +85,8 @@ class CourseRecommendationSummary(BaseModel):
     title: str
     region: str
     thumbnailUrl: str
+    thumbnailCredit: str | None = None
+    thumbnailPlace: str | None = None
     tags: list[str]
     courseType: str
     fatigueLevel: FatigueLevel

@@ -20,9 +20,15 @@ describe('recommendationService', () => {
       departure: null,
       duration: 'FULL_DAY',
       preferences: ['NATURE_WALK'],
+      mobility: 'ANY',
     }
 
-    await expect(getRecommendations(conditions)).resolves.toEqual([])
+    await expect(getRecommendations(conditions)).resolves.toEqual({
+      courses: [],
+      exclusions: [],
+      suggestions: [],
+      meta: null,
+    })
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -61,6 +67,15 @@ describe('recommendationService', () => {
             },
           ],
           exclusions: [],
+          suggestions: [],
+          meta: {
+            exposureMode: 'INTERNAL',
+            evaluatedCount: 7,
+            blockedCount: 1,
+            schemaInvalidCount: 0,
+            dataSnapshotDate: '2026-08-19',
+            appliedMobility: 'MIN_TRANSFER',
+          },
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       ),
@@ -69,14 +84,16 @@ describe('recommendationService', () => {
       departure: 'GWANGJU_SONGJEONG',
       duration: 'FULL_DAY',
       preferences: ['HISTORY_CULTURE', 'FOOD_MARKET', 'MEMORY'],
+      mobility: 'MIN_TRANSFER',
     }
 
-    const courses = await getRecommendations(conditions)
+    const result = await getRecommendations(conditions)
 
-    expect(courses.map((course) => course.id)).toEqual([
+    expect(result.courses.map((course) => course.id)).toEqual([
       'naju-history-walk',
       'mokpo-port-culture',
     ])
+    expect(result.meta?.appliedMobility).toBe('MIN_TRANSFER')
     expect(fetchMock).toHaveBeenCalledWith('/api/recommendations', {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },

@@ -1,17 +1,16 @@
-import type { Course, CourseSummary } from '../types/course.ts'
+import type { Course } from '../types/course.ts'
+import type { RecommendationResult } from '../types/recommendation.ts'
 import type { TravelConditions } from '../types/travelConditions.ts'
 import { fetchApiJson, isApiNotFoundError } from './apiClient.ts'
 
-interface RecommendationApiResponse {
-  courses: CourseSummary[]
-}
-
 export async function getRecommendations(
   conditions: TravelConditions,
-): Promise<CourseSummary[]> {
-  if (!conditions.departure || !conditions.duration) return []
+): Promise<RecommendationResult> {
+  if (!conditions.departure || !conditions.duration) {
+    return { courses: [], exclusions: [], suggestions: [], meta: null }
+  }
 
-  const response = await fetchApiJson<RecommendationApiResponse>(
+  return fetchApiJson<RecommendationResult>(
     '/api/recommendations',
     {
       method: 'POST',
@@ -19,8 +18,6 @@ export async function getRecommendations(
       body: JSON.stringify(conditions),
     },
   )
-
-  return response.courses
 }
 
 export async function getCourseById(courseId: string): Promise<Course | null> {

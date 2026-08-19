@@ -1,6 +1,7 @@
 import type {
   DepartureId,
   DurationId,
+  MobilityId,
   PreferenceId,
 } from '../types/travelConditions.ts'
 
@@ -24,6 +25,12 @@ export const preferenceOptions: Array<TravelConditionOption<PreferenceId>> = [
   { id: 'HISTORY_CULTURE', label: '역사·문화' },
   { id: 'FOOD_MARKET', label: '음식·시장' },
   { id: 'MEMORY', label: '감성기록' },
+]
+
+export const mobilityOptions: Array<TravelConditionOption<MobilityId>> = [
+  { id: 'MIN_TRANSFER', label: '환승 최소' },
+  { id: 'LOW_BURDEN', label: '이동 부담 낮게' },
+  { id: 'ANY', label: '상관없음' },
 ]
 
 export function getOptionLabel<T extends string>(

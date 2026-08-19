@@ -33,6 +33,9 @@ describe('App', () => {
         name: '차 없이도 충분한 전남의 하루',
       }),
     ).toBeInTheDocument()
+    expect(
+      screen.getAllByText('사진 제공 (김찬영) - 한국관광공사'),
+    ).toHaveLength(2)
   })
 
   it('redirects incomplete recommendations to the plan page', () => {
@@ -66,6 +69,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '광주송정역' }))
     await user.click(screen.getByRole('button', { name: '하루 종일' }))
     await user.click(screen.getByRole('button', { name: '자연·산책' }))
+    await user.click(screen.getByRole('button', { name: '환승 최소' }))
 
     expect(submitButton).toBeEnabled()
     fetchMock.mockResolvedValueOnce(
@@ -77,6 +81,8 @@ describe('App', () => {
               title: '담양 느린 산책 코스',
               region: '담양',
               thumbnailUrl: '/images/course-damyang.svg',
+              thumbnailCredit: '오경택',
+              thumbnailPlace: '관방제림',
               tags: ['자연·산책', '감성기록', '음식'],
               fatigueLevel: 'MEDIUM',
               durationMinutes: 360,
@@ -103,7 +109,11 @@ describe('App', () => {
     expect(
       screen.getByText('• 자연·산책 취향과 주요 장소가 잘 맞아요.'),
     ).toBeInTheDocument()
-    expect(screen.getByText('귀가가능')).toBeInTheDocument()
+    expect(screen.getByText('귀가 가능')).toBeInTheDocument()
+    expect(screen.getByText('환승 최소')).toBeInTheDocument()
+    expect(
+      screen.getByText('사진 제공 (오경택) - 한국관광공사'),
+    ).toBeInTheDocument()
   })
 
   it('asks for a preference when submitting without one', async () => {

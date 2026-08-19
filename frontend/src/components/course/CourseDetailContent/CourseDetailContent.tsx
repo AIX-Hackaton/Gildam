@@ -32,11 +32,22 @@ export function CourseDetailContent({ course }: CourseDetailContentProps) {
   return (
     <>
       <main className={`page-content ${styles.main}`}>
-        <img
-          className={styles.hero}
-          src={course.thumbnailUrl}
-          alt={`${course.region} ${course.title} 대표 풍경`}
-        />
+        <div className={styles.heroWrap}>
+          <img
+            className={styles.hero}
+            src={course.thumbnailUrl}
+            alt={
+              course.thumbnailPlace
+                ? `${course.thumbnailPlace} 풍경`
+                : `${course.region} ${course.title} 대표 풍경`
+            }
+          />
+          {course.thumbnailCredit ? (
+            <p className={styles.imageCredit}>
+              사진 제공 ({course.thumbnailCredit}) - 한국관광공사
+            </p>
+          ) : null}
+        </div>
 
         <div className={styles.content}>
           <section className={styles.intro}>
