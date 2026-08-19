@@ -35,6 +35,8 @@ from backend.app.recommendations.models import (
     RecommendationResponse,
     RecommendationSuggestion,
 )
+from backend.app.traffic import service as traffic_service
+from backend.app.traffic.models import TrafficEvaluation
 
 MAX_RESULTS = 3
 
@@ -340,6 +342,7 @@ def _build_summary(
     request: RecommendationRequest,
     fatigue: dict[str, Any],
     feasibility: dict[str, Any],
+    traffic: TrafficEvaluation,
 ) -> dict[str, Any]:
     breakdown = _build_score_breakdown(course, request, fatigue, feasibility)
     reasons = list(course["recommendationReasons"])
@@ -348,6 +351,9 @@ def _build_summary(
         reasons.append(
             f"지연 시 최대 {feasibility['worstCaseTotalMinutes']}분까지 늘어날 수 있어 여유를 두고 움직여 주세요."
         )
+
+    if traffic.status == "TIGHT":
+        reasons.extend(warning.message for warning in traffic.warnings)
 
     return {
         "id": course["id"],
@@ -371,6 +377,9 @@ def _build_summary(
         "recommendationScore": _total_score(breakdown),
         "scoreBreakdown": breakdown,
         "returnFeasibility": feasibility,
+        "trafficStatus": traffic.status,
+        "trafficWarnings": traffic.warnings,
+        "traffic": traffic,
     }
 
 
@@ -383,6 +392,7 @@ def _count_matches(
     courses: list[dict[str, Any]],
     request: RecommendationRequest,
     mode: exposure.ExposureMode,
+    traffic_provider: traffic_service.TrafficProvider | None = None,
 ) -> int:
     count = 0
 
@@ -393,6 +403,11 @@ def _count_matches(
         if not _collect_exclusion_reasons(
             course, request, feasibility, fatigue, mode
         ):
+            traffic = traffic_service.evaluate_course_traffic(
+                course, feasibility, traffic_provider
+            )
+            if traffic.status == "BLOCKED":
+                continue
             count += 1
 
     return count
@@ -402,6 +417,7 @@ def _build_suggestions(
     courses: list[dict[str, Any]],
     request: RecommendationRequest,
     mode: exposure.ExposureMode,
+    traffic_provider: traffic_service.TrafficProvider | None = None,
 ) -> list[RecommendationSuggestion]:
     """조건 하나만 바꿨을 때 결과가 생기는지 실제로 계산해 안내합니다."""
 
@@ -409,7 +425,7 @@ def _build_suggestions(
 
     if request.duration == "SIX_HOURS":
         relaxed = request.model_copy(update={"duration": "FULL_DAY"})
-        count = _count_matches(courses, relaxed, mode)
+        count = _count_matches(courses, relaxed, mode, traffic_provider)
         if count:
             suggestions.append(
                 RecommendationSuggestion(
@@ -421,7 +437,7 @@ def _build_suggestions(
 
     if request.mobility != "ANY":
         relaxed = request.model_copy(update={"mobility": "ANY"})
-        count = _count_matches(courses, relaxed, mode)
+        count = _count_matches(courses, relaxed, mode, traffic_provider)
         if count:
             suggestions.append(
                 RecommendationSuggestion(
@@ -433,7 +449,7 @@ def _build_suggestions(
 
     all_preferences = ["NATURE_WALK", "HISTORY_CULTURE", "FOOD_MARKET", "MEMORY"]
     relaxed = request.model_copy(update={"preferences": all_preferences})
-    count = _count_matches(courses, relaxed, mode)
+    count = _count_matches(courses, relaxed, mode, traffic_provider)
     if count and count > 0 and len(request.preferences) < len(all_preferences):
         suggestions.append(
             RecommendationSuggestion(
@@ -447,7 +463,7 @@ def _build_suggestions(
         "GWANGJU_SONGJEONG" if request.departure == "USQUARE" else "USQUARE"
     )
     relaxed = request.model_copy(update={"departure": other_departure})
-    count = _count_matches(courses, relaxed, mode)
+    count = _count_matches(courses, relaxed, mode, traffic_provider)
     if count:
         label = "광주송정역" if other_departure == "GWANGJU_SONGJEONG" else "유스퀘어"
         suggestions.append(
@@ -480,10 +496,14 @@ def get_recommendations(
 ) -> RecommendationResponse:
     all_courses = get_valid_courses()
     mode = exposure.get_exposure_mode()
+    traffic_provider = traffic_service.get_traffic_provider()
 
     candidates: list[dict[str, Any]] = []
     exclusions: list[ExcludedCourse] = []
     blocked_count = 0
+    traffic_evaluated_count = 0
+    traffic_blocked_count = 0
+    traffic_tight_count = 0
     recommendable: list[dict[str, Any]] = []
 
     for index, course in enumerate(all_courses):
@@ -522,9 +542,45 @@ def get_recommendations(
             )
             continue
 
-        summary = _build_summary(course, request, fatigue, feasibility)
+        traffic = traffic_service.evaluate_course_traffic(
+            course, feasibility, traffic_provider
+        )
+        traffic_evaluated_count += 1
+
+        if traffic.status == "BLOCKED":
+            traffic_blocked_count += 1
+            exclusions.append(
+                ExcludedCourse(
+                    id=course["id"],
+                    title=course["title"],
+                    trafficStatus="BLOCKED",
+                    reasons=[
+                        ExclusionReason(
+                            code="REALTIME_TRAFFIC_BLOCKED",
+                            message=(
+                                traffic.warnings[0].message
+                                if traffic.warnings
+                                else "실시간 교통 정보상 코스 수행이 어렵습니다."
+                            ),
+                        )
+                    ],
+                )
+            )
+            continue
+
+        if traffic.status == "TIGHT":
+            traffic_tight_count += 1
+
+        adjusted_feasibility = traffic_service.apply_traffic_to_feasibility(
+            feasibility, traffic
+        )
+        summary = _build_summary(
+            course, request, fatigue, adjusted_feasibility, traffic
+        )
         summary["_sourceIndex"] = index
         candidates.append(summary)
+
+    provider_name = type(traffic_provider).__name__
 
     ranked = sorted(
         candidates,
@@ -537,12 +593,19 @@ def get_recommendations(
         ),
     )[:MAX_RESULTS]
 
-    for item in ranked:
+    for rank, item in enumerate(ranked, start=1):
         item.pop("_sourceIndex", None)
+        item["rank"] = rank
 
     suggestions = (
-        _build_suggestions(recommendable, request, mode) if not ranked else []
+        _build_suggestions(recommendable, request, mode, traffic_provider)
+        if not ranked
+        else []
     )
+
+    close = getattr(traffic_provider, "close", None)
+    if callable(close):
+        close()
 
     return RecommendationResponse(
         courses=[CourseRecommendationSummary(**deepcopy(item)) for item in ranked],
@@ -555,5 +618,9 @@ def get_recommendations(
             schemaInvalidCount=len(get_schema_diagnostics()),
             dataSnapshotDate=DATA_SNAPSHOT_DATE,
             appliedMobility=request.mobility,
+            trafficProvider=provider_name,
+            trafficEvaluatedCount=traffic_evaluated_count,
+            trafficBlockedCount=traffic_blocked_count,
+            trafficTightCount=traffic_tight_count,
         ),
     )

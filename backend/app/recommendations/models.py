@@ -6,6 +6,11 @@ from backend.app.courses.models import (
     FatigueExplanation,
     ReturnFeasibilityModel,
 )
+from backend.app.traffic.models import (
+    TrafficEvaluation,
+    TrafficStatus,
+    TrafficWarning,
+)
 
 DepartureId = Literal["GWANGJU_SONGJEONG", "USQUARE"]
 DurationId = Literal["SIX_HOURS", "FULL_DAY"]
@@ -22,6 +27,7 @@ ExclusionReasonCode = Literal[
     "PREFERENCE_MISMATCH",
     "BLOCKED_BY_EXPOSURE_POLICY",
     "SCHEMA_INVALID",
+    "REALTIME_TRAFFIC_BLOCKED",
 ]
 
 SuggestionCode = Literal[
@@ -74,6 +80,7 @@ class RecommendationScoreBreakdown(BaseModel):
 
 
 class CourseRecommendationSummary(BaseModel):
+    rank: int
     id: str
     title: str
     region: str
@@ -95,6 +102,9 @@ class CourseRecommendationSummary(BaseModel):
     recommendationScore: float
     scoreBreakdown: RecommendationScoreBreakdown
     returnFeasibility: ReturnFeasibilityModel
+    trafficStatus: TrafficStatus
+    trafficWarnings: list[TrafficWarning] = Field(default_factory=list)
+    traffic: TrafficEvaluation
 
 
 class ExclusionReason(BaseModel):
@@ -106,6 +116,7 @@ class ExcludedCourse(BaseModel):
     id: str
     title: str
     reasons: list[ExclusionReason]
+    trafficStatus: TrafficStatus | None = None
 
 
 class RecommendationSuggestion(BaseModel):
@@ -121,6 +132,10 @@ class RecommendationMeta(BaseModel):
     schemaInvalidCount: int
     dataSnapshotDate: str
     appliedMobility: MobilityId
+    trafficProvider: str
+    trafficEvaluatedCount: int = 0
+    trafficBlockedCount: int = 0
+    trafficTightCount: int = 0
 
 
 class RecommendationResponse(BaseModel):

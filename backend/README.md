@@ -38,6 +38,10 @@ python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
 | `TOUR_API_MOBILE_OS` | `WEB` | TourAPI 필수 파라미터 `MobileOS` |
 | `TOUR_API_MOBILE_APP` | `Gildam` | TourAPI 필수 파라미터 `MobileApp` |
 | `TOUR_API_TIMEOUT_SECONDS` | `8` | TourAPI 호출 타임아웃 |
+| `TRAFFIC_API_ENABLED` | `0` | `1`이면 추천 후보의 귀가 구간 실시간 교통 조회를 켭니다. |
+| `TRAFFIC_API_SERVICE_KEY` | (없음) | 공공데이터포털 TAGO 버스도착정보 인증키 |
+| `TRAFFIC_API_TIMEOUT_SECONDS` | `5` | 실시간 교통 조회 타임아웃 |
+| `TRAFFIC_TAGO_BUS_ARRIVAL_BASE_URL` | `https://apis.data.go.kr/1613000/ArvlInfoInqireService` | TAGO 버스도착정보 기본 URL |
 
 ## Tests
 
@@ -171,11 +175,25 @@ curl -X POST http://127.0.0.1:8001/api/recommendations \
 - `suggestions` — 결과가 없을 때, 조건을 하나씩 완화해 **실제로 가능한 개수를 계산한** 대안
 - `meta` — 데이터 기준일, 평가한 코스 수, 노출 제외 수, 스키마 위반 수
 
+실시간 교통 응답:
+
+- `courses[].rank` — 백엔드가 최종 정렬한 추천 순위. 교통 문제로 1순위가 제외되면 다음 후보가 `1`이 됩니다.
+- `courses[].returnFeasibility.status` — 기존 일정 여유와 실시간 교통을 반영한 최종 귀가 판정
+- `courses[].trafficStatus` — 실시간 교통 조회가 직접 만든 상태: `NORMAL`, `TIGHT`, `BLOCKED`, `UNKNOWN`
+- `courses[].trafficWarnings` — `TIGHT` 또는 `UNKNOWN`일 때 UI에 표시할 경고 문구
+- `exclusions[].trafficStatus` — 실시간 교통 문제로 제외된 경우 `BLOCKED`
+- `meta.trafficProvider`, `meta.trafficEvaluatedCount`, `meta.trafficBlockedCount`, `meta.trafficTightCount`
+
+실시간 교통은 추천 후보가 기본 조건을 통과한 뒤 **귀가 교통 구간만** 확인합니다.
+현재 지원 provider는 TAGO 버스도착정보이며, 코스의 `schedule.returnTransport.realtimeTraffic`
+에 `provider`, `cityCode`, `nodeId`, `routeId`, `plannedWaitMinutes`가 있어야 실제 조회합니다.
+매핑이 없거나 API가 꺼져 있으면 `UNKNOWN`으로 내려가며, 추천 자체는 유지합니다.
+
 제외 사유 코드:
 
 `UNSUPPORTED_DEPARTURE`, `DAY_NOT_SUPPORTED`, `TIME_LIMIT_EXCEEDED`,
 `RETURN_NOT_FEASIBLE`, `MOBILITY_LIMIT_EXCEEDED`, `PREFERENCE_MISMATCH`,
-`BLOCKED_BY_EXPOSURE_POLICY`, `SCHEMA_INVALID`
+`BLOCKED_BY_EXPOSURE_POLICY`, `SCHEMA_INVALID`, `REALTIME_TRAFFIC_BLOCKED`
 
 ## 오류 응답 규격
 
@@ -212,6 +230,9 @@ backend/
 │  ├─ tour_api/
 │  │  ├─ client.py               TourAPI KorService2 호출·정규화
 │  │  └─ models.py               TourAPI 프록시 응답 모델
+│  ├─ traffic/
+│  │  ├─ models.py               실시간 교통 상태·경고 모델
+│  │  └─ service.py              TAGO 버스도착정보 조회와 TIGHT/BLOCKED 판정
 │  └─ recommendations/
 │     ├─ models.py               요청/응답 모델, 제외 사유·제안 코드
 │     └─ service.py              6단계 추천 파이프라인
@@ -228,7 +249,9 @@ backend/
 → ③ 출발지 / 운영 요일 필터
 → ④ 가능 시간 + 귀가 가능성 필터 (최악값 + 배차/계획회차/예약 정책)
 → ⑤ 이동 부담(mobility) 필터
-→ ⑥ 취향 필터 후 가중 점수 산정
+→ ⑥ 취향 필터
+→ ⑦ 실시간 귀가 교통 확인 (NORMAL/TIGHT/BLOCKED/UNKNOWN)
+→ ⑧ 가중 점수 산정
 → 상위 3건 + 제외 사유 + (없으면) 대안 제안
 ```
 
