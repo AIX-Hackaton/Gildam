@@ -45,6 +45,7 @@ class RecommendationsApiTest(unittest.TestCase):
 
         self.assertGreater(len(data["courses"]), 0)
         self.assertEqual(data["courses"][0]["id"], "NJ_LOW_01")
+        self.assertEqual(data["courses"][0]["thumbnailCredit"], "황성훈")
         self.assertEqual(
             data["courses"][0]["returnFeasibility"]["confidence"],
             "NEEDS_DAY_OF_CHECK",

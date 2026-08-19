@@ -6,16 +6,24 @@ import styles from './HomePage.module.css'
 
 const heroSlides = [
   {
-    src: '/images/home-damyang.webp',
-    alt: '담양 연꽃 연못과 산책로 풍경',
+    src: '/images/home/김찬영_무안식영정.jpg',
+    alt: '무안 식영정 풍경',
+    credit: '김찬영',
   },
   {
-    src: '/images/home-naju.webp',
-    alt: '나주 돌담과 한옥이 이어진 골목 풍경',
+    src: '/images/home/오경택_메타세퀘이아길.jpg',
+    alt: '담양 메타세쿼이아길 풍경',
+    credit: '오경택',
   },
   {
-    src: '/images/home-mokpo.webp',
-    alt: '목포 바다와 섬이 보이는 산책로 풍경',
+    src: '/images/home/이재근_여수밤바다.jpg',
+    alt: '여수 밤바다 풍경',
+    credit: '이재근',
+  },
+  {
+    src: '/images/home/황성훈_죽림재.jpg',
+    alt: '담양 죽림재 풍경',
+    credit: '황성훈',
   },
 ]
 
@@ -56,6 +64,9 @@ export function HomePage() {
                     src={slide.src}
                     alt={slide.alt}
                   />
+                  <p className={styles.imageCredit}>
+                    사진 제공 ({slide.credit}) - 한국관광공사
+                  </p>
                 </div>
               ))}
               <div className={styles.slide} aria-hidden="true">
@@ -64,6 +75,9 @@ export function HomePage() {
                   src={heroSlides[0].src}
                   alt=""
                 />
+                <p className={styles.imageCredit}>
+                  사진 제공 ({heroSlides[0].credit}) - 한국관광공사
+                </p>
               </div>
             </div>
           </div>

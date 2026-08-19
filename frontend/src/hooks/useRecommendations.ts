@@ -1,14 +1,21 @@
 import { useEffect, useState } from 'react'
 
 import { getRecommendations } from '../services/recommendationService.ts'
-import type { CourseSummary } from '../types/course.ts'
+import type { RecommendationResult } from '../types/recommendation.ts'
 import type { TravelConditions } from '../types/travelConditions.ts'
+
+const EMPTY_RESULT: RecommendationResult = {
+  courses: [],
+  exclusions: [],
+  suggestions: [],
+  meta: null,
+}
 
 export function useRecommendations(
   conditions: TravelConditions,
   enabled: boolean,
 ) {
-  const [courses, setCourses] = useState<CourseSummary[]>([])
+  const [result, setResult] = useState<RecommendationResult>(EMPTY_RESULT)
   const [isLoading, setIsLoading] = useState(enabled)
   const [hasError, setHasError] = useState(false)
   const [retryKey, setRetryKey] = useState(0)
@@ -17,7 +24,7 @@ export function useRecommendations(
     let isCurrent = true
 
     if (!enabled) {
-      setCourses([])
+      setResult(EMPTY_RESULT)
       setHasError(false)
       setIsLoading(false)
       return () => {
@@ -28,14 +35,14 @@ export function useRecommendations(
     setIsLoading(true)
     setHasError(false)
     getRecommendations(conditions)
-      .then((recommendations) => {
+      .then((recommendationResult) => {
         if (!isCurrent) return
-        setCourses(recommendations)
+        setResult(recommendationResult)
         setIsLoading(false)
       })
       .catch(() => {
         if (!isCurrent) return
-        setCourses([])
+        setResult(EMPTY_RESULT)
         setHasError(true)
         setIsLoading(false)
       })
@@ -46,7 +53,7 @@ export function useRecommendations(
   }, [conditions, enabled, retryKey])
 
   return {
-    courses,
+    ...result,
     isLoading,
     hasError,
     retry: () => setRetryKey((current) => current + 1),

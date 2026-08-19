@@ -27,6 +27,18 @@
   object-position: center top;
 }
 
+.imageCredit {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  margin: 0;
+  color: rgb(255 255 255 / 70%);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: -0.025em;
+}
+
 .content {
   display: grid;
   gap: var(--space-6);

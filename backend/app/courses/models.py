@@ -256,6 +256,8 @@ class CourseDetailResponse(BaseModel):
     exposureTier: ExposureTier
     verifiedDate: str
     thumbnailUrl: str
+    thumbnailCredit: str | None = None
+    thumbnailPlace: str | None = None
     tags: list[str]
     preferences: list[str]
 

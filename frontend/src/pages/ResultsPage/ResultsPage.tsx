@@ -20,10 +20,14 @@ export function ResultsPage() {
     (requestedPreview === 'error' || requestedPreview === 'no-results')
       ? requestedPreview
       : null
-  const { courses, isLoading, hasError, retry } = useRecommendations(
-    conditions,
-    isComplete && previewState === null,
-  )
+  const {
+    courses,
+    exclusions,
+    suggestions,
+    isLoading,
+    hasError,
+    retry,
+  } = useRecommendations(conditions, isComplete && previewState === null)
 
   if (!isComplete && previewState === null) {
     return <Navigate to="/plan" replace />
@@ -53,6 +57,7 @@ export function ResultsPage() {
           <ErrorState onRetry={retry} onBack={() => navigate('/plan')} />
         ) : courses.length === 0 ? (
           <NoResultsState
+            suggestions={suggestions.map((suggestion) => suggestion.message)}
             onReset={() => navigate('/plan')}
             onHome={() => navigate('/')}
           />
@@ -60,6 +65,7 @@ export function ResultsPage() {
           <ResultsContent
             conditions={conditions}
             courses={courses}
+            excludedCourses={exclusions}
             onOpenCourse={(courseId) => navigate(`/courses/${courseId}`)}
           />
         )}

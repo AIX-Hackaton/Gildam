@@ -354,6 +354,8 @@ def _build_summary(
         "title": course["title"],
         "region": course["region"],
         "thumbnailUrl": course["thumbnailUrl"],
+        "thumbnailCredit": course.get("thumbnailCredit"),
+        "thumbnailPlace": course.get("thumbnailPlace"),
         "tags": course["tags"],
         "courseType": course["courseType"],
         "fatigueLevel": fatigue["level"],

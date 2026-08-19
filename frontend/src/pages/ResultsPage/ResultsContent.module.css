@@ -85,6 +85,40 @@
   gap: var(--space-5);
 }
 
+.exclusions {
+  padding: 16px;
+  border: 1px solid var(--color-recommendation-chip-border);
+  border-radius: 20px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-subtle);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.exclusions summary {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.exclusions ul {
+  display: grid;
+  gap: 16px;
+  padding: 0;
+  margin: 16px 0 0;
+  list-style: none;
+}
+
+.exclusions strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.exclusions p {
+  margin: 4px 0 0;
+  word-break: keep-all;
+}
+
 @media (max-width: 319px) {
   .intro h1 {
     font-size: 1.625rem;
