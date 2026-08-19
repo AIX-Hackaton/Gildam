@@ -17,6 +17,7 @@ RecommendationResults
    ├─ ResultHeading
    ├─ ConditionChipList
    ├─ FeaturedCourseCard
+   │  ├─ RankLabel
    │  ├─ CourseImage
    │  └─ CourseCardBody
    │     ├─ CourseTitle
@@ -25,7 +26,7 @@ RecommendationResults
    │     ├─ RecommendationReasons
    │     └─ CourseDetailButton
    └─ AlternativeCourseList
-      └─ CourseCard × 1–2
+      └─ RankLabel + CourseCard × 1–2
 ```
 
 - 컴포넌트는 데이터 책임을 기준으로 나눈다. 카드 내부 장식만을 위한 컴포넌트는 만들지 않는다.
@@ -39,6 +40,7 @@ RecommendationResults
 | 앱 배경 | `#FFFFFF` |
 | 헤더 | 높이 64px, 중앙 제목은 시각적으로 숨기고 뒤로가기만 노출 |
 | 본문 | 좌우 20px, 상단 16px, 주요 블록 간격 32px |
+| 순위 라벨 | 카드 밖 상단에 `추천 1위`~`추천 3위` 텍스트로 표시 |
 | 대표 카드 | 폭 100%, 모서리 30px, 테두리 없음, `0 0 10px rgba(0,0,0,.1)` |
 | 카드 이미지 | 높이 213px, 카드 폭보다 넓게 채운 뒤 중앙 상단 기준으로 자름 |
 | 카드 본문 | 패딩 16px, 항목 간격 24px |
@@ -84,6 +86,7 @@ RecommendationResults
 | 역할 | 크기 | 굵기 | 행간 / 자간 |
 |---|---:|---:|---|
 | 결과 제목 | 28px | 600 | normal / -2.5% |
+| 순위 라벨 | 14px | 600 | normal / -2.5% |
 | 카드 제목 | 20px | 600 | normal / -2.5% |
 | 지표 값 | 14px | 500 | normal / -2.5% |
 | 추천 이유 제목 | 16px | 500 | normal / -2.5% |
@@ -100,6 +103,7 @@ RecommendationResults
 | 영역 | 규칙 | 예시 |
 |---|---|---|
 | 결과 제목 | 선택이 반영됐다는 완료형 문장 | `내 조건에 맞는 코스를 찾았어요` |
+| 순위 라벨 | 점수순 순위를 짧게 표기 | `추천 1위`, `추천 2위` |
 | 조건 칩 | 선택값만 짧게 표기, 조사·문장부호 없음 | `유스퀘어`, `6시간`, `자연산책` |
 | 카드 제목 | 지역명 + 핵심 경험 + `코스` | `담양 느린 산책 코스` |
 | 지표 | `피로도`, `환승`, `총 도보`, `예상 시간` 순서 고정 | `보통`, `1회`, `24분`, `6시간` |

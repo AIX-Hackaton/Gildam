@@ -35,7 +35,7 @@ export function ResultsContent({
     ),
   ].filter(Boolean) as string[]
 
-  const [featuredCourse, ...alternativeCourses] = courses
+  const [featuredCourse, ...alternativeCourses] = courses.slice(0, 3)
 
   return (
     <>
@@ -52,11 +52,14 @@ export function ResultsContent({
         ))}
       </div>
 
-      <CourseCard
-        course={featuredCourse}
-        featured
-        onOpen={() => onOpenCourse(featuredCourse.id)}
-      />
+      <div className={styles.rankedCourse}>
+        <p className={styles.rankLabel}>추천 1위</p>
+        <CourseCard
+          course={featuredCourse}
+          featured
+          onOpen={() => onOpenCourse(featuredCourse.id)}
+        />
+      </div>
 
       {alternativeCourses.length > 0 ? (
         <section className={styles.alternatives}>
@@ -65,12 +68,14 @@ export function ResultsContent({
             <p>{alternativeCourses.length}개의 대안 코스</p>
           </div>
           <div className={styles.alternativeList}>
-            {alternativeCourses.map((course) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                onOpen={() => onOpenCourse(course.id)}
-              />
+            {alternativeCourses.map((course, index) => (
+              <div className={styles.rankedCourse} key={course.id}>
+                <p className={styles.rankLabel}>추천 {index + 2}위</p>
+                <CourseCard
+                  course={course}
+                  onOpen={() => onOpenCourse(course.id)}
+                />
+              </div>
             ))}
           </div>
         </section>
