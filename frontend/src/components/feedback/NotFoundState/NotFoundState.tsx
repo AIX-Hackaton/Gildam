@@ -10,8 +10,8 @@ interface NotFoundStateProps {
 }
 
 export function NotFoundState({
-  title = '페이지를 찾을 수 없어요.',
-  description = '주소가 올바른지 확인하거나 홈에서 다시 시작해주세요.',
+  title = '페이지를 찾을 수 없어요',
+  description = '주소가 올바른지 확인하거나 홈에서 다시 시작해주세요',
   onHome,
   onBack,
 }: NotFoundStateProps) {
@@ -24,11 +24,18 @@ export function NotFoundState({
       <p className={layout.description}>{description}</p>
       <div className={layout.actions}>
         {onBack ? (
-          <Button type="button" size="large" fullWidth onClick={onBack}>
+          <Button
+            className={layout.primaryAction}
+            type="button"
+            size="large"
+            fullWidth
+            onClick={onBack}
+          >
             추천 결과로 돌아가기
           </Button>
         ) : null}
         <Button
+          className={onBack ? layout.secondaryAction : layout.primaryAction}
           type="button"
           variant={onBack ? 'secondary' : 'primary'}
           size="large"

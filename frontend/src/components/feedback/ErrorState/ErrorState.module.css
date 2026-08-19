@@ -1,9 +1,8 @@
 .eyebrow {
-  margin: 0 0 var(--space-3);
-  padding: 6px 10px;
-  border-radius: var(--radius-pill);
-  color: var(--color-danger);
-  background: var(--color-danger-surface);
-  font-size: var(--font-size-caption);
+  margin: 0 0 var(--space-5);
+  color: #87aa37;
+  font-size: 2.5rem;
   font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }

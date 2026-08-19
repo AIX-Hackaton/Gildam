@@ -9,7 +9,13 @@ export function NotFoundPage() {
 
   return (
     <AppShell>
-      <PageHeader title="페이지 없음" showBack onBack={() => navigate(-1)} />
+      <PageHeader
+        title="페이지 없음"
+        visuallyHiddenTitle
+        backAlignedToContent
+        showBack
+        onBack={() => navigate(-1)}
+      />
       <main className="page-content">
         <NotFoundState onHome={() => navigate('/')} />
       </main>

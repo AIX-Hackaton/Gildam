@@ -1,7 +1,8 @@
 .code {
-  margin: 0 0 var(--space-3);
-  color: var(--color-accent-coral);
+  margin: 0 0 var(--space-5);
+  color: #87aa37;
   font-size: 2.5rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }

@@ -49,8 +49,8 @@ export function CourseDetailPage() {
         />
         <main className="page-content">
           <NotFoundState
-            title="코스를 찾지 못했어요."
-            description="추천 결과에서 다른 코스를 선택해주세요."
+            title="코스를 찾지 못했어요"
+            description="추천 결과에서 다른 코스를 선택해주세요"
             onBack={() => navigate('/results')}
             onHome={() => navigate('/')}
           />

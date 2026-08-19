@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
 import { PageHeader } from '../../components/common/PageHeader/PageHeader.tsx'
@@ -12,13 +12,22 @@ import styles from './ResultsPage.module.css'
 
 export function ResultsPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { conditions, isComplete } = useTravelConditions()
+  const requestedPreview = searchParams.get('preview')
+  const previewState =
+    import.meta.env.DEV &&
+    (requestedPreview === 'error' || requestedPreview === 'no-results')
+      ? requestedPreview
+      : null
   const { courses, isLoading, hasError, retry } = useRecommendations(
     conditions,
-    isComplete,
+    isComplete && previewState === null,
   )
 
-  if (!isComplete) return <Navigate to="/plan" replace />
+  if (!isComplete && previewState === null) {
+    return <Navigate to="/plan" replace />
+  }
 
   return (
     <AppShell>
@@ -31,7 +40,14 @@ export function ResultsPage() {
       />
 
       <main className={`page-content ${styles.main}`}>
-        {isLoading ? (
+        {previewState === 'error' ? (
+          <ErrorState onRetry={retry} onBack={() => navigate('/plan')} />
+        ) : previewState === 'no-results' ? (
+          <NoResultsState
+            onReset={() => navigate('/plan')}
+            onHome={() => navigate('/')}
+          />
+        ) : isLoading ? (
           <CourseCardSkeleton />
         ) : hasError ? (
           <ErrorState onRetry={retry} onBack={() => navigate('/plan')} />
