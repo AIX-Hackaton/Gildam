@@ -35,6 +35,10 @@
   --color-memory: #9c7952;
   --color-success: #5b7f30;
   --color-warning: #9b6816;
+  --color-return-available-background: #f1f6e8;
+  --color-return-available-border: #a7bf7a;
+  --color-return-tight-background: #fff4e2;
+  --color-return-tight-border: #e1b46e;
   --color-danger: #b8473e;
   --color-danger-surface: #fff0ec;
 

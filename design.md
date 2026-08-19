@@ -64,8 +64,12 @@ RecommendationResults
 | Chip background | `#FFFFFF` | 조건 칩, 코스 태그, 귀가 상태 뱃지 |
 | Chip border | `#D3C7C0` | 핀뱃지 외곽선 |
 | Chip text | `#706661` | 핀뱃지 텍스트 |
-| Return available | `#5B7F30` | `귀가가능` 뱃지 텍스트 |
-| Return tight | `#9B6816` | `귀가빠듯` 뱃지 텍스트 |
+| Return available text | `#5B7F30` | `귀가 가능` 뱃지 텍스트 |
+| Return available background | `#F1F6E8` | `귀가 가능` 뱃지 배경 |
+| Return available border | `#A7BF7A` | `귀가 가능` 뱃지 테두리 |
+| Return tight text | `#9B6816` | `귀가 빠듯` 뱃지 텍스트 |
+| Return tight background | `#FFF4E2` | `귀가 빠듯` 뱃지 배경 |
+| Return tight border | `#E1B46E` | `귀가 빠듯` 뱃지 테두리 |
 | Positive | `#44B739` | 피로도 값 |
 | CTA base | `#87AA37` | 코스 상세 버튼 |
 

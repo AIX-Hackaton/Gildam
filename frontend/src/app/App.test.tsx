@@ -103,7 +103,7 @@ describe('App', () => {
     expect(
       screen.getByText('• 자연·산책 취향과 주요 장소가 잘 맞아요.'),
     ).toBeInTheDocument()
-    expect(screen.getByText('귀가가능')).toBeInTheDocument()
+    expect(screen.getByText('귀가 가능')).toBeInTheDocument()
   })
 
   it('asks for a preference when submitting without one', async () => {

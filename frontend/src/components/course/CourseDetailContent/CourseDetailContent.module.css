@@ -59,11 +59,17 @@
 }
 
 .tags .returnAvailable {
+  border-color: var(--color-return-available-border);
   color: var(--color-success);
+  background: var(--color-return-available-background);
+  font-weight: 600;
 }
 
 .tags .returnTight {
+  border-color: var(--color-return-tight-border);
   color: var(--color-warning);
+  background: var(--color-return-tight-background);
+  font-weight: 600;
 }
 
 .section {
