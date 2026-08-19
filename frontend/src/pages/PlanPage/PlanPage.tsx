@@ -37,6 +37,8 @@ export function PlanPage() {
     <AppShell>
       <PageHeader
         title="여행 조건"
+        visuallyHiddenTitle
+        backAlignedToContent
         showBack
         onBack={() => navigate('/')}
       />
@@ -45,7 +47,7 @@ export function PlanPage() {
         <section className={styles.intro}>
           <h1 className={styles.heading}>여행 조건을 선택해주세요</h1>
           <p className={styles.description}>
-            선택한 조건을 바탕으로 완주 가능한 코스를 추천해드려요.
+            선택한 조건을 바탕으로 최적의 코스를 추천 드려요
           </p>
         </section>
 
@@ -78,11 +80,11 @@ export function PlanPage() {
         </form>
       </main>
 
-      <StickyBottomCTA>
+      <StickyBottomCTA className={styles.ctaBar}>
         <Button
           type="submit"
           form="travel-plan-form"
-          size="large"
+          className={styles.cta}
           fullWidth
           disabled={!isComplete}
           loading={isSubmitting}

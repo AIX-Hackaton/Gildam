@@ -6,20 +6,23 @@
 }
 
 .legend {
-  margin-bottom: var(--space-4);
-  font-size: 1.0625rem;
-  font-weight: 700;
+  margin-bottom: 16px;
+  color: #4d433d;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: -0.025em;
 }
 
 .hint {
-  margin-left: var(--space-1);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-caption);
-  font-weight: 500;
+  margin-left: 4px;
+  color: #968d88;
+  font-size: 0.875rem;
+  font-weight: 400;
 }
 
 .options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: 12px;
 }
