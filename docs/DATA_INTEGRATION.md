@@ -29,7 +29,7 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 
 ---
 
-## 2. 현재 반영된 코스 7건
+## 2. 현재 반영된 주력 6건 + 보류 1건
 
 | 코스ID | 코스명 | 출발지 | 시간 | 계획(분) | 도보 | 환승 | 피로도 | 검증상태 | 노출등급 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -57,7 +57,7 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 4. `sum(itinerary[].durationMinutes) == totalMinutes.plan`
 5. `sum(도보 구간) == walkingMinutes.plan`
 6. `itinerary`의 환승 표시 개수 == `transferCount`
-7. `schedule`에 `lastReturnDeparture`와 그 검증상태 존재
+7. `lastReturnDeparture`가 있으면 검증상태가 `VERIFIED` 또는 `OFFICIAL`
 
 검증: `python -m backend.app.courses.schema` (CI에서 자동 실행)
 
@@ -67,7 +67,7 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 
 `feasibility.evaluate_return_feasibility(course, duration)`
 
-- 허용 시간: `SIX_HOURS = 390분`(계획 6시간 + 지연 여유 30분), `FULL_DAY = 720분`
+- 허용 시간: 제품 명세 그대로 `SIX_HOURS = 360분`, `FULL_DAY = 720분`
 - 여유(`slackMinutes`)는 계획값이 아니라 **최악값(`totalMinutes.max`)** 기준으로 계산합니다.
 - 시간 총량만 보지 않고, **마지막 일정 종료 시각이 막차 출발 시각보다 앞서는지**를 함께 검사합니다.
   (막차 시각 − (마지막 일정 종료 + `returnBufferMinutes`) ≥ 0)
@@ -79,19 +79,18 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 | `NOT_FEASIBLE` | **계획값**이 허용 시간 초과 / 막차를 놓침 / 막차 정보 미확인 |
 
 `NOT_FEASIBLE`은 추천 결과에서 제외됩니다. `TIGHT`은 제외하지 않되, 왜 빠듯한지를
-화면에 그대로 표기합니다. (예: DY_LOW_01 — 계획 354분, 최악 396분, 여유 −6분)
+화면에 그대로 표기합니다. (예: DY_LOW_01 — 계획 354분, 최악 396분, 여유 −36분)
 
 막차 정보가 아예 없으면 "아마 될 것"으로 넘기지 않고 **추천에서 뺍니다.**
 
 | confidence | 의미 |
 |---|---|
 | `CONFIRMED` | 막차 시각 공식 확인 완료 |
-| `NEEDS_DAY_OF_CHECK` | 보수적 추정값 — 이용일 당일 재확인 필요 |
+| `NEEDS_DAY_OF_CHECK` | 값은 있으나 공식 확정 전 — 추천 제외 |
 | `UNVERIFIED` | 확인 불가 → `NOT_FEASIBLE` 처리 |
 
-> ⚠️ **현재 한계**: 담양 311(20:00), 나주(21:00), 목포(21:30) 막차 시각은 **보수적 추정값**이며
-> `NEEDS_RECHECK` 상태입니다. 공식 시각표 확인 후 갱신해야 합니다.
-> 화면에도 이 사실을 그대로 표기합니다.
+> ⚠️ **현재 한계**: 시트에는 담양·나주·목포 귀가편의 공식 막차 시각이 없습니다.
+> 코드도 이를 `None/UNVERIFIED`로 보존하며, 공식 확인 전에는 추천하지 않습니다.
 
 ---
 
@@ -119,8 +118,8 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 
 | 노출등급 | 추천 결과 | 직접 URL 접근 |
 |---|---|---|
-| `MANUAL_REVIEW` | 노출 | 가능 |
-| `DEMO_ONLY` | 노출 (`GILDAM_EXPOSURE_MODE=INTERNAL`일 때) | 가능 |
+| `MANUAL_REVIEW` | 귀가편 검증 통과 시 내부 노출 | 내부 상세 가능 |
+| `DEMO_ONLY` | 귀가편 검증 통과 시 내부 노출 | 내부 상세 가능 |
 | `BLOCKED` | **절대 노출 안 됨** | **404** |
 
 - `GILDAM_EXPOSURE_MODE`: `INTERNAL`(기본) / `PUBLIC`
@@ -172,7 +171,7 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 | 항목 | 상태 |
 |---|---|
 | 교통 구간 약 49%가 `NEEDS_RECHECK` | 지도 실측 대기 |
-| 막차 시각 3건 | 보수적 추정값, 공식 확인 필요 |
+| 담양·나주·목포 귀가편 | 막차 시각 없음, 공식 확인 전 추천 제외 |
 | MP_NORMAL_02 | `NEEDS_RECHECK` — 목포 2024-02 노선 개편 반영 검증 중 |
 | MP_NORMAL_01 | `BLOCKED` 유지 |
 | 311-1 지선 국도 노선 변경(2026-05) | 담양 코스 영향 모니터링 필요 |

@@ -34,8 +34,7 @@ class RecommendationsApiTest(unittest.TestCase):
 
     # -- 대표 시나리오 -------------------------------------------------
 
-    def test_representative_scenario_ranks_naju_low_first(self) -> None:
-        """대표 시나리오: 유스퀘어 / 6시간 / 역사·문화+음식·시장 / 환승 최소."""
+    def test_representative_scenario_is_withheld_until_return_is_verified(self) -> None:
 
         response = self._post(mobility="MIN_TRANSFER")
 
@@ -43,12 +42,11 @@ class RecommendationsApiTest(unittest.TestCase):
 
         data = response.json()
 
-        self.assertGreater(len(data["courses"]), 0)
-        self.assertEqual(data["courses"][0]["id"], "NJ_LOW_01")
-        self.assertEqual(data["courses"][0]["durationMinutes"], 289)
-        self.assertEqual(data["courses"][0]["walkingMinutes"], 35)
-        self.assertEqual(data["courses"][0]["transferCount"], 0)
-        self.assertEqual(data["courses"][0]["fatigueLevel"], "MEDIUM")
+        self.assertEqual(data["courses"], [])
+        excluded = {item["id"]: item for item in data["exclusions"]}
+        self.assertEqual(
+            excluded["NJ_LOW_01"]["reasons"][0]["code"], "RETURN_NOT_FEASIBLE"
+        )
 
     def test_returns_at_most_three_courses(self) -> None:
         response = self._post(
@@ -98,7 +96,7 @@ class RecommendationsApiTest(unittest.TestCase):
 
     # -- 조건 반응성 ---------------------------------------------------
 
-    def test_mobility_condition_changes_results(self) -> None:
+    def test_mobility_never_overrides_unverified_return_transport(self) -> None:
         relaxed = self._post(
             duration="FULL_DAY", preferences=["HISTORY_CULTURE"], mobility="ANY"
         ).json()
@@ -111,9 +109,8 @@ class RecommendationsApiTest(unittest.TestCase):
         relaxed_ids = {course["id"] for course in relaxed["courses"]}
         strict_ids = {course["id"] for course in strict["courses"]}
 
-        self.assertIn("NJ_NORMAL_01", relaxed_ids)
-        self.assertNotIn("NJ_NORMAL_01", strict_ids)
-        self.assertTrue(strict_ids <= relaxed_ids)
+        self.assertEqual(relaxed_ids, set())
+        self.assertEqual(strict_ids, set())
 
     def test_departure_filter_excludes_other_region(self) -> None:
         data = self._post(departure="GWANGJU_SONGJEONG").json()
@@ -146,26 +143,8 @@ class RecommendationsApiTest(unittest.TestCase):
 
     # -- 설명 가능성 ---------------------------------------------------
 
-    def test_score_breakdown_is_explainable_and_sums_to_total(self) -> None:
-        course = self._post(mobility="MIN_TRANSFER").json()["courses"][0]
-        breakdown = course["scoreBreakdown"]
-
-        expected_keys = {
-            "preferenceMatch",
-            "mobility",
-            "returnMargin",
-            "localResource",
-            "recordFit",
-        }
-        self.assertEqual(set(breakdown), expected_keys)
-
-        total = sum(factor["weightedScore"] for factor in breakdown.values())
-        self.assertAlmostEqual(course["recommendationScore"], total, places=3)
-
-        for factor in breakdown.values():
-            self.assertTrue(factor["explanation"])
-            self.assertGreaterEqual(factor["score"], 0)
-            self.assertLessEqual(factor["score"], 1)
+    def test_unverified_courses_do_not_leak_score_breakdowns(self) -> None:
+        self.assertEqual(self._post().json()["courses"], [])
 
     def test_more_walking_lowers_mobility_score(self) -> None:
         data = self._post(
@@ -180,13 +159,15 @@ class RecommendationsApiTest(unittest.TestCase):
                 by_id["DY_LOW_01"]["scoreBreakdown"]["mobility"]["score"],
             )
 
-    def test_fatigue_explanation_is_included(self) -> None:
-        course = self._post().json()["courses"][0]
-        explanation = course["fatigueExplanation"]
-
-        self.assertEqual(len(explanation["factors"]), 3)
-        self.assertTrue(explanation["formula"])
-        self.assertIn(explanation["level"], {"LOW", "MEDIUM", "HIGH"})
+    def test_exclusions_explain_unverified_return_transport(self) -> None:
+        data = self._post().json()
+        reasons = [
+            reason
+            for item in data["exclusions"]
+            for reason in item["reasons"]
+            if reason["code"] == "RETURN_NOT_FEASIBLE"
+        ]
+        self.assertTrue(reasons)
 
     # -- 결과 없음 대응 -------------------------------------------------
 
@@ -204,18 +185,18 @@ class RecommendationsApiTest(unittest.TestCase):
         self.assertGreater(len(data["suggestions"]), 0)
 
         codes = {suggestion["code"] for suggestion in data["suggestions"]}
-        self.assertIn("RELAX_DURATION", codes)
+        self.assertIn("NO_ALTERNATIVE", codes)
 
         for suggestion in data["suggestions"]:
             self.assertTrue(suggestion["message"])
             if suggestion["code"] != "NO_ALTERNATIVE":
                 self.assertGreater(suggestion["availableCount"], 0)
 
-    def test_suggestions_are_absent_when_results_exist(self) -> None:
+    def test_no_suggestions_claim_unverified_courses_are_available(self) -> None:
         data = self._post().json()
 
-        self.assertGreater(len(data["courses"]), 0)
-        self.assertEqual(data["suggestions"], [])
+        self.assertEqual(data["courses"], [])
+        self.assertEqual(data["suggestions"][0]["code"], "NO_ALTERNATIVE")
 
     def test_does_not_invent_courses_when_nothing_matches(self) -> None:
         response = get_recommendations(

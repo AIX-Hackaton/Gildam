@@ -66,7 +66,7 @@ export function ReturnFeasibilityCard({
           </dd>
         </div>
         <div>
-          <dt>마지막 귀가편</dt>
+          <dt>공식 확인된 마지막 귀가편</dt>
           <dd>
             {feasibility.lastReturnDeparture ?? '미확인'}
             {feasibility.lastReturnSlackMinutes !== null &&

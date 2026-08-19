@@ -93,6 +93,13 @@ def collect_course_problems(course: Any) -> list[str]:
         if not schedule.get(field):
             problems.append(f"missing required schedule field: {field}")
 
+    last_return = schedule.get("lastReturnDeparture")
+    last_return_status = schedule.get("lastReturnDepartureStatus")
+    if last_return and last_return_status not in {"VERIFIED", "OFFICIAL"}:
+        problems.append(
+            "lastReturnDeparture may only be populated from a VERIFIED or OFFICIAL source"
+        )
+
     itinerary = course["itinerary"]
     itinerary_total = sum(item.get("durationMinutes") or 0 for item in itinerary)
     plan_total = course["totalMinutes"].get("plan")

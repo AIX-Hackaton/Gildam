@@ -3,7 +3,6 @@ import {
   departureOptions,
   durationOptions,
   getOptionLabel,
-  mobilityOptions,
   preferenceOptions,
 } from '../../constants/travelConditionOptions.ts'
 import type {
@@ -41,9 +40,6 @@ export function ResultsContent({
     ...conditions.preferences.map((preference) =>
       getOptionLabel(preferenceOptions, preference),
     ),
-    conditions.mobility !== 'ANY'
-      ? getOptionLabel(mobilityOptions, conditions.mobility)
-      : null,
   ].filter(Boolean) as string[]
 
   const [featuredCourse, ...alternativeCourses] = courses

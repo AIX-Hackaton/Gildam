@@ -69,12 +69,13 @@ class CourseDetailApiTest(unittest.TestCase):
         self.assertIsNone(get_course_detail("unknown-course"))
         self.assertIsNone(get_course_detail("MP_NORMAL_01"))
 
-    def test_duration_query_changes_feasibility_verdict(self) -> None:
+    def test_unverified_return_transport_blocks_both_duration_options(self) -> None:
         six = self.client.get("/api/courses/DY_NORMAL_01?duration=SIX_HOURS").json()
         full = self.client.get("/api/courses/DY_NORMAL_01?duration=FULL_DAY").json()
 
         self.assertEqual(six["returnFeasibility"]["status"], "NOT_FEASIBLE")
-        self.assertNotEqual(full["returnFeasibility"]["status"], "NOT_FEASIBLE")
+        self.assertEqual(full["returnFeasibility"]["status"], "NOT_FEASIBLE")
+        self.assertEqual(full["returnFeasibility"]["confidence"], "UNVERIFIED")
 
 
 class DataIntegrityTest(unittest.TestCase):
@@ -103,10 +104,14 @@ class DataIntegrityTest(unittest.TestCase):
         self.assertEqual(len(valid), len(COURSE_DETAILS))
         self.assertEqual(len(diagnostics), 1)
 
-    def test_all_valid_courses_have_last_return_information(self) -> None:
+    def test_primary_courses_do_not_invent_last_return_times(self) -> None:
         for course in get_valid_courses():
             with self.subTest(course=course["id"]):
-                self.assertIn("lastReturnDeparture", course["schedule"])
+                if course.get("isPrimary"):
+                    self.assertIsNone(course["schedule"]["lastReturnDeparture"])
+                    self.assertEqual(
+                        course["schedule"]["lastReturnDepartureStatus"], "UNVERIFIED"
+                    )
 
     def test_feasibility_marks_unverified_last_bus_as_not_feasible(self) -> None:
         broken = copy.deepcopy(COURSE_DETAILS[0])
@@ -137,6 +142,10 @@ class HealthAndDemoFailureTest(unittest.TestCase):
 
         self.assertEqual(data["status"], "ok")
         self.assertEqual(data["schemaInvalidCount"], 0)
+        self.assertEqual(data["managedCourseCount"], 7)
+        self.assertEqual(data["primaryCourseCount"], 6)
+        self.assertEqual(data["blockedCourseCount"], 1)
+        self.assertEqual(data["publishableCourseCount"], 0)
         self.assertIn("MP_NORMAL_01", data["blockedCourseIds"])
         self.assertEqual(data["dataSnapshotDate"], "2026-08-06")
 

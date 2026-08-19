@@ -166,7 +166,14 @@ def health_check() -> dict[str, object]:
         "dataSnapshotDate": DATA_SNAPSHOT_DATE,
         "dataSourceUrl": DATA_SOURCE_URL,
         "exposureMode": exposure.get_exposure_mode(),
-        "courseCount": len(courses),
+        "managedCourseCount": len(courses),
+        "primaryCourseCount": sum(1 for course in courses if course.get("isPrimary")),
+        "blockedCourseCount": sum(
+            1 for course in courses if exposure.is_hard_blocked(course)
+        ),
+        "publishableCourseCount": sum(
+            1 for course in courses if course.get("publishable")
+        ),
         "recommendableCount": sum(
             1 for course in courses if exposure.is_recommendable(course)
         ),

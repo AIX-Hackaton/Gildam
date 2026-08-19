@@ -18,7 +18,7 @@ FeasibilityStatus = Literal["FEASIBLE", "TIGHT", "NOT_FEASIBLE"]
 FeasibilityConfidence = Literal["CONFIRMED", "NEEDS_DAY_OF_CHECK", "UNVERIFIED"]
 
 DURATION_LIMITS: dict[str, int] = {
-    "SIX_HOURS": 390,  # 6시간 조건은 계획 6시간 + 지연 여유 30분까지 허용합니다.
+    "SIX_HOURS": 360,
     "FULL_DAY": 720,
 }
 
@@ -137,7 +137,7 @@ def evaluate_return_feasibility(
                 "마지막 일정이 끝나는 시각이 막차 출발시각보다 늦어 당일 귀가가 불가능합니다."
             )
 
-    # 3. 막차 정보의 신뢰도
+    # 3. 귀가편 정보의 신뢰도. 시트에 없는 추정 시각으로 추천을 허용하지 않습니다.
     last_return_status = schedule.get("lastReturnDepartureStatus")
 
     if last_return_status in {"VERIFIED", "OFFICIAL"}:
@@ -153,6 +153,7 @@ def evaluate_return_feasibility(
         messages.append(
             "막차 시각은 공식 확인 전 값이라 이용일 당일 도착정보를 반드시 확인해 주세요."
         )
+        status = "NOT_FEASIBLE"
 
     booking_required = bool(schedule.get("bookingRequired"))
     if booking_required:

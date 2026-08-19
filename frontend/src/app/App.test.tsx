@@ -28,16 +28,16 @@ const najuLowSummary = {
   verificationStatus: 'PARTIALLY_VERIFIED',
   returnFeasibility: {
     status: 'FEASIBLE',
-    confidence: 'NEEDS_DAY_OF_CHECK',
+    confidence: 'CONFIRMED',
     departureTime: '09:00',
     plannedReturnTime: '13:49',
     latestReturnTime: '13:59',
     plannedTotalMinutes: 289,
     worstCaseTotalMinutes: 299,
-    allowedMinutes: 390,
-    slackMinutes: 91,
-    lastReturnDeparture: '21:00',
-    lastReturnSlackMinutes: 421,
+    allowedMinutes: 360,
+    slackMinutes: 61,
+    lastReturnDeparture: '14:30',
+    lastReturnSlackMinutes: 21,
     bookingRequired: false,
     messages: ['최악의 경우에도 6시간 안에 돌아올 수 있어요.'],
   },
@@ -121,24 +121,6 @@ describe('App', () => {
       }),
     ).toBeInTheDocument()
     expect(screen.getByText('나주 읍성·곰탕 저환승 코스')).toBeInTheDocument()
-  })
-
-  it('이동 부담 조건을 선택해 요청에 반영한다', async () => {
-    const user = userEvent.setup()
-    renderApp('/plan')
-
-    await selectConditions(user)
-    await user.click(screen.getByRole('button', { name: /환승 최소/ }))
-
-    fetchMock.mockResolvedValueOnce(
-      jsonResponse({ courses: [najuLowSummary], exclusions: [], suggestions: [] }),
-    )
-    await user.click(screen.getByRole('button', { name: '코스 추천받기' }))
-
-    await screen.findByText('나주 읍성·곰탕 저환승 코스')
-
-    const init = fetchMock.mock.calls[0][1] as RequestInit
-    expect(JSON.parse(String(init.body)).mobility).toBe('MIN_TRANSFER')
   })
 
   it('결과가 없으면 서버가 계산한 대안을 그대로 보여준다', async () => {

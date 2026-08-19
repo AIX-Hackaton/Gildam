@@ -40,7 +40,7 @@ python scripts/export_openapi.py --check                               # 명세 
 
 검증 범위:
 
-- 대표 시나리오 추천 순위
+- 공식 귀가편 미확인 코스의 안전한 추천 제외
 - 조건 조합 전수 테스트로 `BLOCKED` 코스 비노출 보장
 - 귀가 가능성 판정(막차 미확인 = 추천 제외)
 - 이동 부담(mobility) 필터 반응성
@@ -60,7 +60,10 @@ python scripts/export_openapi.py --check                               # 명세 
   "status": "ok",
   "dataSnapshotDate": "2026-08-06",
   "schemaVersion": "3.1",
-  "courseCount": 7,
+  "managedCourseCount": 7,
+  "primaryCourseCount": 6,
+  "blockedCourseCount": 1,
+  "publishableCourseCount": 0,
   "schemaInvalidCount": 0,
   "blockedCourseIds": ["MP_NORMAL_01"],
   "fatigueMismatches": [...]
@@ -72,7 +75,7 @@ python scripts/export_openapi.py --check                               # 명세 
 
 ### `GET /api/meta/conditions`
 
-조건 선택지(출발지·시간·취향·이동 부담)의 단일 정의입니다. 프론트엔드 하드코딩이
+조건 선택지(출발지·시간·취향)의 단일 정의입니다. API의 `mobility`는 호환용 선택 필드이며 프론트 입력에는 노출하지 않습니다. 프론트엔드 하드코딩이
 백엔드와 어긋나는 것을 막습니다.
 
 ### `GET /api/courses/{course_id}`
@@ -150,7 +153,7 @@ backend/
 ├─ app/
 │  ├─ main.py                    앱 생성, 라우트, 오류 규격, health, 조건 메타
 │  ├─ courses/
-│  │  ├─ data.py                 스프레드시트 스냅샷 (schema v3.1, 코스 7건)
+│  │  ├─ data.py                 스프레드시트 스냅샷 (주력 6건 + 보류 1건)
 │  │  ├─ schema.py               데이터 정합성 검증 (+ CLI)
 │  │  ├─ exposure.py             노출 정책 단일 판단 지점
 │  │  ├─ feasibility.py          귀가 가능성 판정
