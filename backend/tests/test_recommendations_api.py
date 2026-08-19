@@ -1,5 +1,6 @@
 import os
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -7,6 +8,7 @@ from backend.app.courses.service import get_valid_courses
 from backend.app.main import app
 from backend.app.recommendations.models import RecommendationRequest
 from backend.app.recommendations.service import get_recommendations
+from backend.app.traffic.models import TrafficSnapshot
 
 PRIMARY_COURSE_IDS = {
     "DY_LOW_01",
@@ -21,6 +23,27 @@ PRIMARY_COURSE_IDS = {
 class RecommendationsApiTest(unittest.TestCase):
     def setUp(self) -> None:
         self.client = TestClient(app)
+
+    def _with_traffic(self, snapshots_by_course_id: dict[str, TrafficSnapshot]):
+        class FakeTrafficProvider:
+            def get_return_leg_snapshot(self, course):
+                return snapshots_by_course_id.get(
+                    course["id"],
+                    TrafficSnapshot(
+                        status="NORMAL",
+                        provider="TEST_TRAFFIC",
+                        affectedSegmentId=(
+                            course.get("schedule", {})
+                            .get("returnTransport", {})
+                            .get("segmentId")
+                        ),
+                    ),
+                )
+
+        return patch(
+            "backend.app.recommendations.service.traffic_service.get_traffic_provider",
+            return_value=FakeTrafficProvider(),
+        )
 
     def _post(self, **overrides):
         payload = {
@@ -49,6 +72,16 @@ class RecommendationsApiTest(unittest.TestCase):
             data["courses"][0]["returnFeasibility"]["confidence"],
             "NEEDS_DAY_OF_CHECK",
         )
+
+    def test_representative_scenario_ranks_naju_then_damyang(self) -> None:
+        with self._with_traffic({}):
+            data = self._post(mobility="MIN_TRANSFER").json()
+
+        self.assertEqual(
+            [course["id"] for course in data["courses"]],
+            ["NJ_LOW_01", "DY_LOW_01"],
+        )
+        self.assertEqual([course["rank"] for course in data["courses"]], [1, 2])
 
     def test_returns_at_most_three_courses(self) -> None:
         response = self._post(
@@ -124,6 +157,28 @@ class RecommendationsApiTest(unittest.TestCase):
         self.assertNotIn("NJ_NORMAL_01", strict_ids)
         self.assertTrue(strict_ids <= relaxed_ids)
 
+    def test_condition_changes_actual_ranking_order(self) -> None:
+        with self._with_traffic({}):
+            six_hour = self._post(
+                duration="SIX_HOURS",
+                preferences=["HISTORY_CULTURE", "FOOD_MARKET"],
+                mobility="MIN_TRANSFER",
+            ).json()
+            full_day = self._post(
+                duration="FULL_DAY",
+                preferences=["HISTORY_CULTURE"],
+                mobility="ANY",
+            ).json()
+
+        self.assertEqual(
+            [course["id"] for course in six_hour["courses"]],
+            ["NJ_LOW_01", "DY_LOW_01"],
+        )
+        self.assertEqual(
+            [course["id"] for course in full_day["courses"]],
+            ["NJ_LOW_01", "NJ_NORMAL_01", "DY_NORMAL_01"],
+        )
+
     def test_departure_filter_excludes_other_region(self) -> None:
         data = self._post(departure="GWANGJU_SONGJEONG").json()
 
@@ -186,6 +241,50 @@ class RecommendationsApiTest(unittest.TestCase):
             self.assertEqual(
                 course["returnFeasibility"]["confidence"], "NEEDS_DAY_OF_CHECK"
             )
+
+    def test_realtime_traffic_tight_keeps_course_with_warning(self) -> None:
+        with self._with_traffic(
+            {
+                "NJ_LOW_01": TrafficSnapshot(
+                    status="DELAYED",
+                    provider="TEST_TRAFFIC",
+                    affectedSegmentId="NJ_LOW_01-S2",
+                    delayMinutes=50,
+                    message="테스트 지연",
+                )
+            }
+        ):
+            data = self._post(mobility="MIN_TRANSFER").json()
+
+        naju = next(course for course in data["courses"] if course["id"] == "NJ_LOW_01")
+        self.assertEqual(naju["trafficStatus"], "TIGHT")
+        self.assertEqual(naju["returnFeasibility"]["status"], "TIGHT")
+        self.assertEqual(naju["trafficWarnings"][0]["code"], "REALTIME_TRAFFIC_TIGHT")
+        self.assertEqual(data["meta"]["trafficTightCount"], 1)
+
+    def test_realtime_traffic_blocked_excludes_course_and_returns_alternative(self) -> None:
+        with self._with_traffic(
+            {
+                "NJ_LOW_01": TrafficSnapshot(
+                    status="BLOCKED",
+                    provider="TEST_TRAFFIC",
+                    affectedSegmentId="NJ_LOW_01-S2",
+                    message="귀가편 도착 예정 차량이 없습니다.",
+                )
+            }
+        ):
+            data = self._post(mobility="MIN_TRANSFER").json()
+
+        self.assertEqual([course["id"] for course in data["courses"]], ["DY_LOW_01"])
+        self.assertEqual(data["courses"][0]["rank"], 1)
+        excluded = next(
+            item for item in data["exclusions"] if item["id"] == "NJ_LOW_01"
+        )
+        self.assertEqual(excluded["trafficStatus"], "BLOCKED")
+        self.assertEqual(
+            excluded["reasons"][0]["code"], "REALTIME_TRAFFIC_BLOCKED"
+        )
+        self.assertEqual(data["meta"]["trafficBlockedCount"], 1)
 
     # -- 결과 없음 대응 -------------------------------------------------
 

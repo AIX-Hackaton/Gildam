@@ -581,6 +581,9 @@ components:
       title: CourseDetailResponse
     CourseRecommendationSummary:
       properties:
+        rank:
+          type: integer
+          title: Rank
         id:
           type: string
           title: Id
@@ -649,8 +652,24 @@ components:
           $ref: '#/components/schemas/RecommendationScoreBreakdown'
         returnFeasibility:
           $ref: '#/components/schemas/ReturnFeasibilityModel'
+        trafficStatus:
+          type: string
+          enum:
+          - NORMAL
+          - TIGHT
+          - BLOCKED
+          - UNKNOWN
+          title: Trafficstatus
+        trafficWarnings:
+          items:
+            $ref: '#/components/schemas/TrafficWarning'
+          type: array
+          title: Trafficwarnings
+        traffic:
+          $ref: '#/components/schemas/TrafficEvaluation'
       type: object
       required:
+      - rank
       - id
       - title
       - region
@@ -672,6 +691,8 @@ components:
       - recommendationScore
       - scoreBreakdown
       - returnFeasibility
+      - trafficStatus
+      - traffic
       title: CourseRecommendationSummary
     DataLineageResponse:
       properties:
@@ -821,6 +842,16 @@ components:
             $ref: '#/components/schemas/ExclusionReason'
           type: array
           title: Reasons
+        trafficStatus:
+          anyOf:
+          - type: string
+            enum:
+            - NORMAL
+            - TIGHT
+            - BLOCKED
+            - UNKNOWN
+          - type: 'null'
+          title: Trafficstatus
       type: object
       required:
       - id
@@ -840,6 +871,7 @@ components:
           - PREFERENCE_MISMATCH
           - BLOCKED_BY_EXPOSURE_POLICY
           - SCHEMA_INVALID
+          - REALTIME_TRAFFIC_BLOCKED
           title: Code
         message:
           type: string
@@ -1251,6 +1283,21 @@ components:
           - LOW_BURDEN
           - ANY
           title: Appliedmobility
+        trafficProvider:
+          type: string
+          title: Trafficprovider
+        trafficEvaluatedCount:
+          type: integer
+          title: Trafficevaluatedcount
+          default: 0
+        trafficBlockedCount:
+          type: integer
+          title: Trafficblockedcount
+          default: 0
+        trafficTightCount:
+          type: integer
+          title: Traffictightcount
+          default: 0
       type: object
       required:
       - exposureMode
@@ -1259,6 +1306,7 @@ components:
       - schemaInvalidCount
       - dataSnapshotDate
       - appliedMobility
+      - trafficProvider
       title: RecommendationMeta
     RecommendationRequest:
       properties:
@@ -1915,6 +1963,78 @@ components:
       - analysisResults
       - nextEvidence
       title: Track1DatasetLineage
+    TrafficEvaluation:
+      properties:
+        status:
+          type: string
+          enum:
+          - NORMAL
+          - TIGHT
+          - BLOCKED
+          - UNKNOWN
+          title: Status
+        provider:
+          type: string
+          title: Provider
+        checkedAt:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Checkedat
+        affectedSegmentId:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Affectedsegmentid
+        delayMinutes:
+          type: integer
+          title: Delayminutes
+          default: 0
+        projectedTotalMinutes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Projectedtotalminutes
+        projectedSlackMinutes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Projectedslackminutes
+        warnings:
+          items:
+            $ref: '#/components/schemas/TrafficWarning'
+          type: array
+          title: Warnings
+      type: object
+      required:
+      - status
+      - provider
+      title: TrafficEvaluation
+    TrafficWarning:
+      properties:
+        code:
+          type: string
+          enum:
+          - REALTIME_TRAFFIC_TIGHT
+          - REALTIME_TRAFFIC_BLOCKED
+          - REALTIME_TRAFFIC_UNKNOWN
+          title: Code
+        message:
+          type: string
+          title: Message
+        severity:
+          type: string
+          enum:
+          - info
+          - warning
+          - blocking
+          title: Severity
+      type: object
+      required:
+      - code
+      - message
+      - severity
+      title: TrafficWarning
     ValidationError:
       properties:
         loc:
