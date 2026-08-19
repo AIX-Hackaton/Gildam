@@ -1,4 +1,7 @@
-import type { FatigueLevel } from '../types/course.ts'
+import type {
+  FatigueLevel,
+  ReturnFeasibilityStatus,
+} from '../types/course.ts'
 
 export const fatigueLabels: Record<FatigueLevel, string> = {
   LOW: '낮음',
@@ -15,4 +18,14 @@ export function formatDuration(minutes: number) {
 
 export function formatCompactLabel(label: string) {
   return label.replaceAll('·', '')
+}
+
+export function formatRecommendationReason(reason: string) {
+  return `• ${reason.trim().replace(/[.!?]+$/u, '')}.`
+}
+
+export function getReturnFeasibilityLabel(status: ReturnFeasibilityStatus) {
+  if (status === 'FEASIBLE') return '귀가가능'
+  if (status === 'TIGHT') return '귀가빠듯'
+  return null
 }

@@ -1,5 +1,9 @@
 import type { CourseSummary } from '../../../types/course.ts'
-import { formatCompactLabel } from '../../../utils/coursePresentation.ts'
+import {
+  formatCompactLabel,
+  formatRecommendationReason,
+  getReturnFeasibilityLabel,
+} from '../../../utils/coursePresentation.ts'
 import { Button } from '../../common/Button/Button.tsx'
 import { CourseMetrics } from '../CourseMetrics/CourseMetrics.tsx'
 import styles from './CourseCard.module.css'
@@ -15,6 +19,10 @@ export function CourseCard({
   featured = false,
   onOpen,
 }: CourseCardProps) {
+  const returnFeasibilityLabel = getReturnFeasibilityLabel(
+    course.returnFeasibility.status,
+  )
+
   return (
     <article className={`${styles.card} ${featured ? styles.featured : ''}`}>
       <div className={styles.imageWrap}>
@@ -38,6 +46,9 @@ export function CourseCard({
               {formatCompactLabel(tag)}
             </span>
           ))}
+          {returnFeasibilityLabel ? (
+            <span className={styles.tag}>{returnFeasibilityLabel}</span>
+          ) : null}
         </div>
 
         {featured ? (
@@ -45,7 +56,7 @@ export function CourseCard({
             <h3 id={`${course.id}-reason`}>추천 이유</h3>
             <ul>
               {course.recommendationReasons.slice(0, 3).map((reason) => (
-                <li key={reason}>{reason.replace(/[.!?]$/, '')}</li>
+                <li key={reason}>{formatRecommendationReason(reason)}</li>
               ))}
             </ul>
           </section>
