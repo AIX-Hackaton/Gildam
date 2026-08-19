@@ -256,7 +256,7 @@ class RecommendationsApiTest(unittest.TestCase):
 
         self.assertEqual(data["meta"]["schemaInvalidCount"], 0)
         self.assertEqual(data["meta"]["evaluatedCount"], len(get_valid_courses()))
-        self.assertEqual(data["meta"]["dataSnapshotDate"], "2026-08-06")
+        self.assertEqual(data["meta"]["dataSnapshotDate"], "2026-08-19")
 
 
 if __name__ == "__main__":

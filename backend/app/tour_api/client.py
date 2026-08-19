@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import os
+import logging
+import time
+from collections.abc import Iterator
 from typing import Any
 from urllib.parse import quote, urlencode
 
@@ -12,6 +15,9 @@ DEFAULT_BASE_URL = "https://apis.data.go.kr/B551011/KorService2"
 DEFAULT_MOBILE_OS = "WEB"
 DEFAULT_MOBILE_APP = "Gildam"
 DEFAULT_TIMEOUT_SECONDS = 8.0
+DEFAULT_MAX_RETRIES = 2
+RETRYABLE_STATUS_CODES = {429, 502, 503, 504}
+logger = logging.getLogger("gildam.tour_api")
 
 REMOVED_DETAIL_COMMON_FLAGS = {
     "defaultYN",
@@ -106,7 +112,6 @@ def _normalise_item(item: dict[str, Any]) -> TourApiItem:
         createdTime=_item_value(item, "createdtime", "createdTime"),
         modifiedTime=_item_value(item, "modifiedtime", "modifiedTime"),
         copyrightType=_item_value(item, "cpyrhtDivCd", "copyrightType"),
-        raw=dict(item),
     )
 
 
@@ -125,13 +130,24 @@ class TourApiClient:
         mobile_os: str = DEFAULT_MOBILE_OS,
         mobile_app: str = DEFAULT_MOBILE_APP,
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+        max_retries: int = DEFAULT_MAX_RETRIES,
         transport: httpx.BaseTransport | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.mobile_os = mobile_os
         self.mobile_app = mobile_app
         self._service_key = service_key
+        self._max_retries = max(0, max_retries)
         self._client = httpx.Client(timeout=timeout_seconds, transport=transport)
+
+    def close(self) -> None:
+        self._client.close()
+
+    def __enter__(self) -> "TourApiClient":
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self.close()
 
     @classmethod
     def from_env(cls) -> "TourApiClient":
@@ -246,11 +262,46 @@ class TourApiClient:
     def _get_list(self, endpoint: str, params: dict[str, Any]) -> TourApiListResponse:
         url = self._build_url(endpoint, params)
 
-        try:
-            response = self._client.get(url)
-            response.raise_for_status()
-        except httpx.HTTPError as exc:
-            raise TourApiTransportError("TourAPI request failed.") from exc
+        response: httpx.Response | None = None
+        for attempt in range(self._max_retries + 1):
+            started = time.perf_counter()
+            try:
+                response = self._client.get(url)
+                latency_ms = round((time.perf_counter() - started) * 1000, 1)
+                if response.status_code not in RETRYABLE_STATUS_CODES:
+                    response.raise_for_status()
+                    logger.info(
+                        "tourapi endpoint=%s status=%s latency_ms=%s attempt=%s",
+                        endpoint,
+                        response.status_code,
+                        latency_ms,
+                        attempt + 1,
+                    )
+                    break
+                logger.warning(
+                    "tourapi endpoint=%s status=%s latency_ms=%s attempt=%s",
+                    endpoint,
+                    response.status_code,
+                    latency_ms,
+                    attempt + 1,
+                )
+                if attempt == self._max_retries:
+                    response.raise_for_status()
+            except (httpx.TimeoutException, httpx.TransportError) as exc:
+                logger.warning(
+                    "tourapi endpoint=%s transport_error=%s attempt=%s",
+                    endpoint,
+                    type(exc).__name__,
+                    attempt + 1,
+                )
+                if attempt == self._max_retries:
+                    raise TourApiTransportError("TourAPI request failed.") from exc
+            except httpx.HTTPStatusError as exc:
+                raise TourApiTransportError("TourAPI request failed.") from exc
+            time.sleep(0.05 * (2**attempt))
+
+        if response is None:
+            raise TourApiTransportError("TourAPI request failed.")
 
         payload = self._parse_payload(response)
         envelope = payload.get("response")
@@ -265,6 +316,11 @@ class TourApiClient:
         result_message = str(header.get("resultMsg", "TourAPI request failed."))
 
         if result_code != "0000":
+            logger.warning(
+                "tourapi endpoint=%s provider_code=%s",
+                endpoint,
+                result_code,
+            )
             raise TourApiProviderError(result_code, result_message)
 
         body = envelope.get("body") or {}
@@ -314,6 +370,9 @@ class TourApiClient:
         return payload
 
 
-def get_tour_api_client() -> TourApiClient:
-    return TourApiClient.from_env()
+def get_tour_api_client() -> Iterator[TourApiClient]:
+    """FastAPI dependency that deterministically releases pooled connections."""
+
+    with TourApiClient.from_env() as client:
+        yield client
 

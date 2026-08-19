@@ -19,7 +19,7 @@
 from typing import Any
 
 SCHEMA_VERSION = "3.1"
-DATA_SNAPSHOT_DATE = "2026-08-06"
+DATA_SNAPSHOT_DATE = "2026-08-19"
 DATA_SOURCE_NAME = "남도길담 관광·교통 데이터베이스 (Google Sheets, 정본)"
 DATA_SOURCE_URL = (
     "https://docs.google.com/spreadsheets/d/"

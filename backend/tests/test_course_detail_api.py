@@ -157,7 +157,7 @@ class HealthAndDemoFailureTest(unittest.TestCase):
         self.assertEqual(data["blockedCourseCount"], 1)
         self.assertEqual(data["publishableCourseCount"], 0)
         self.assertIn("MP_NORMAL_01", data["blockedCourseIds"])
-        self.assertEqual(data["dataSnapshotDate"], "2026-08-06")
+        self.assertEqual(data["dataSnapshotDate"], "2026-08-19")
         self.assertEqual(data["schemaVersion"], "3.1")
         self.assertEqual(data["dataLineage"]["registryStatus"], "VALID")
         self.assertEqual(data["dataLineage"]["claimReadiness"], "EVIDENCE_GAPS")

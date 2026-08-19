@@ -1,4 +1,7 @@
 import os
+import logging
+import time
+import uuid
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
@@ -38,6 +41,27 @@ app = FastAPI(
         "조건 필터링·귀가 가능성 검증·설명 가능한 추천을 제공합니다."
     ),
 )
+
+logger = logging.getLogger("gildam.api")
+
+
+@app.middleware("http")
+async def request_logging_middleware(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID") or uuid.uuid4().hex
+    request.state.request_id = request_id
+    started = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = round((time.perf_counter() - started) * 1000, 1)
+    response.headers["X-Request-ID"] = request_id
+    logger.info(
+        "request_id=%s method=%s path=%s status=%s duration_ms=%s",
+        request_id,
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_ms,
+    )
+    return response
 
 
 def _allowed_origins() -> list[str]:
@@ -146,7 +170,14 @@ async def validation_exception_handler(
 
 
 @app.exception_handler(Exception)
-async def unhandled_exception_handler(_: Request, __: Exception) -> JSONResponse:
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.exception(
+        "request_id=%s method=%s path=%s status=500 error_code=SERVER_ERROR",
+        getattr(request.state, "request_id", "unknown"),
+        request.method,
+        request.url.path,
+        exc_info=exc,
+    )
     return JSONResponse(
         status_code=500,
         content=_error_body(

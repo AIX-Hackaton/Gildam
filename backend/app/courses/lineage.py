@@ -28,12 +28,16 @@ SHEET_SNAPSHOT: dict[str, Any] = {
         "https://docs.google.com/spreadsheets/d/"
         "1o8xeUEJzt0rai4_Wn73idVLke4meesglSrSWscN5i6E/edit"
     ),
-    "snapshotDate": "2026-08-06",
+    "snapshotDate": "2026-08-19",
     "schemaVersion": "3.1",
     "tabs": [
         {"name": "00_가이드", "gid": 2100000001, "recordKey": "코스ID"},
-        {"name": "검증 현황", "gid": 2100000003, "recordKey": "코스ID"},
+        {"name": "검증 현황", "gid": 2100000003, "recordKey": "코스ID 또는 데이터셋ID"},
         {"name": "변경 이력", "gid": 2100000005, "recordKey": "변경일+대상"},
+        {"name": "Track1 데이터 계보", "gid": 2100000006, "recordKey": "데이터셋ID"},
+        {"name": "TourAPI 장소 매핑", "gid": 2100000009, "recordKey": "장소ID"},
+        {"name": "A-DS01 설명 근거", "gid": 2100000010, "recordKey": "장소ID+원본키"},
+        {"name": "A-DS11 지역선정 근거", "gid": 2100000011, "recordKey": "지역+지표+기간"},
         {"name": "후보 장소", "gid": 0, "recordKey": "장소ID"},
         {"name": "로컬 설명", "gid": 2100000002, "recordKey": "장소ID"},
         {"name": "교통 구간", "gid": 920830765, "recordKey": "구간ID"},
@@ -43,6 +47,8 @@ SHEET_SNAPSHOT: dict[str, Any] = {
         {"name": "개발 JSON", "gid": 624299136, "recordKey": "코스ID+버전"},
         {"name": "검증 링크", "gid": 1845620134, "recordKey": "구분+대상+URL"},
         {"name": "식사 후보", "gid": 1900000001, "recordKey": "후보ID"},
+        {"name": "백엔드 연동 기준", "gid": 2100000007, "recordKey": "시트 원천+backend field"},
+        {"name": "추천 시나리오 QA", "gid": 2100000008, "recordKey": "시나리오ID"},
     ],
 }
 
@@ -357,7 +363,6 @@ TRACK1_USAGE_DECISIONS: dict[str, UsageDecision] = {
         ),
         api_fields=(
             "TourApiListResponse.items[].contentId",
-            "TourApiListResponse.items[].raw",
             "CourseDetailResponse.itinerary",
             "CourseDetailResponse.localPoints",
         ),
@@ -520,8 +525,8 @@ def collect_lineage_problems() -> list[str]:
 
     tab_names = [tab["name"] for tab in SHEET_SNAPSHOT["tabs"]]
     tab_gids = [tab["gid"] for tab in SHEET_SNAPSHOT["tabs"]]
-    if len(tab_names) != 12 or len(tab_names) != len(set(tab_names)):
-        problems.append("sheet snapshot must register all 12 tab names exactly once")
+    if len(tab_names) != 18 or len(tab_names) != len(set(tab_names)):
+        problems.append("sheet snapshot must register all 18 tab names exactly once")
     if len(tab_gids) != len(set(tab_gids)):
         problems.append("sheet tab GIDs must be unique")
     if not all(tab.get("recordKey") for tab in SHEET_SNAPSHOT["tabs"]):

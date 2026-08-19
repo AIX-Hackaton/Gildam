@@ -40,7 +40,7 @@ class Track1LineageTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(len(data["track1Datasets"]), 19)
-        self.assertEqual(len(data["sheetSnapshot"]["tabs"]), 12)
+        self.assertEqual(len(data["sheetSnapshot"]["tabs"]), 18)
         self.assertEqual(data["sheetSnapshot"]["schemaVersion"], "3.1")
         self.assertEqual(data["summary"]["lineageInvalidCount"], 0)
 

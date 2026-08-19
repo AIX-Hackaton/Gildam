@@ -1,5 +1,3 @@
-from typing import Any
-
 from pydantic import BaseModel, Field
 
 
@@ -19,7 +17,6 @@ class TourApiItem(BaseModel):
     createdTime: str | None = None
     modifiedTime: str | None = None
     copyrightType: str | None = None
-    raw: dict[str, Any] = Field(default_factory=dict)
 
 
 class TourApiListResponse(BaseModel):
