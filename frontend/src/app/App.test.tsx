@@ -100,4 +100,29 @@ describe('App', () => {
       }),
     ).toBeInTheDocument()
   })
+
+  it('asks for a preference when submitting without one', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={['/plan']}>
+        <TravelConditionsProvider>
+          <App />
+        </TravelConditionsProvider>
+      </MemoryRouter>,
+    )
+
+    const submitButton = screen.getByRole('button', { name: '코스 추천받기' })
+
+    await user.click(screen.getByRole('button', { name: '유스퀘어' }))
+    await user.click(screen.getByRole('button', { name: '6시간' }))
+
+    expect(submitButton).toBeEnabled()
+    await user.click(submitButton)
+
+    expect(screen.getByRole('alert')).toHaveTextContent('취향을 선택해주세요')
+    expect(
+      screen.getByRole('heading', { name: '여행 조건을 선택해주세요' }),
+    ).toBeInTheDocument()
+  })
 })

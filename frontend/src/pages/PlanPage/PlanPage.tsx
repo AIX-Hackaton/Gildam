@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
@@ -24,13 +24,38 @@ export function PlanPage() {
     isComplete,
   } = useTravelConditions()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPreferenceToast, setShowPreferenceToast] = useState(false)
+
+  useEffect(() => {
+    if (!showPreferenceToast) return
+
+    const timeoutId = window.setTimeout(() => {
+      setShowPreferenceToast(false)
+    }, 2500)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [showPreferenceToast])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!isComplete || isSubmitting) return
+    if (isSubmitting) return
+
+    if (conditions.preferences.length === 0) {
+      setShowPreferenceToast(true)
+      return
+    }
+
+    if (!isComplete) return
 
     setIsSubmitting(true)
     navigate('/results')
+  }
+
+  const handlePreferenceSelect = (
+    preference: Parameters<typeof togglePreference>[0],
+  ) => {
+    setShowPreferenceToast(false)
+    togglePreference(preference)
   }
 
   return (
@@ -75,10 +100,16 @@ export function PlanPage() {
             hint="복수 선택 가능"
             options={preferenceOptions}
             isSelected={(id) => conditions.preferences.includes(id)}
-            onSelect={togglePreference}
+            onSelect={handlePreferenceSelect}
           />
         </form>
       </main>
+
+      {showPreferenceToast ? (
+        <div className={styles.toast} role="alert" aria-live="assertive">
+          취향을 선택해주세요
+        </div>
+      ) : null}
 
       <StickyBottomCTA className={styles.ctaBar}>
         <Button
@@ -86,7 +117,9 @@ export function PlanPage() {
           form="travel-plan-form"
           className={styles.cta}
           fullWidth
-          disabled={!isComplete}
+          disabled={
+            conditions.departure === null || conditions.duration === null
+          }
           loading={isSubmitting}
         >
           코스 추천받기
