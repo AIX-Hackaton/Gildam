@@ -17,12 +17,16 @@
   display: block;
 }
 
+.conditionSummary {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .conditionChips {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
   margin-top: -3px;
-  margin-bottom: -1px;
 }
 
 .conditionChips span {
@@ -35,6 +39,53 @@
   font-weight: 400;
   line-height: normal;
   white-space: nowrap;
+}
+
+.criteria {
+  border-top: 1px solid var(--color-recommendation-chip-border);
+  border-bottom: 1px solid var(--color-recommendation-chip-border);
+  color: var(--color-text-secondary);
+}
+
+.criteria summary {
+  min-height: 44px;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 44px;
+  cursor: pointer;
+}
+
+.criteria p {
+  margin: 0 0 var(--space-3);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: -0.025em;
+}
+
+.criteria dl {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+}
+
+.criteria dl div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.criteria dt,
+.criteria dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.criteria dd {
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 
 .rankedCourse {

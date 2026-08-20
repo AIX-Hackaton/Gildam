@@ -47,6 +47,7 @@ export interface RecommendationScoreFactor {
   score: number
   weight: number
   weightedScore: number
+  explanation: string
 }
 
 export interface PreferenceMatchScoreFactor extends RecommendationScoreFactor {
@@ -57,11 +58,20 @@ export interface PreferenceMatchScoreFactor extends RecommendationScoreFactor {
 
 export interface MobilityScoreFactor extends RecommendationScoreFactor {
   fatigueScore: number
+  fatigueLevel: FatigueLevel
+  walkingMinutes: number
+  transferCount: number
+}
+
+export interface ReturnMarginScoreFactor extends RecommendationScoreFactor {
+  slackMinutes: number
+  status: ReturnFeasibilityStatus
 }
 
 export interface RecommendationScoreBreakdown {
   preferenceMatch: PreferenceMatchScoreFactor
   mobility: MobilityScoreFactor
+  returnMargin: ReturnMarginScoreFactor
   localResource: RecommendationScoreFactor
   recordFit: RecommendationScoreFactor
 }

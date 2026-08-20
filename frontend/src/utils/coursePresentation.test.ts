@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
+import type { CourseSummary } from '../types/course.ts'
 import {
   formatTransportGuidance,
+  getTopRecommendationReasons,
   getReturnActionLabel,
   getReturnFeasibilityLabel,
 } from './coursePresentation.ts'
@@ -72,5 +74,72 @@ describe('formatTransportGuidance', () => {
     expect(formatTransportGuidance('출발 전 BIS에서 도착정보 확인')).toBe(
       '출발 전 버스정보시스템에서 도착정보 확인',
     )
+  })
+})
+
+describe('getTopRecommendationReasons', () => {
+  it('가중 점수가 높은 항목부터 사용자용 추천 이유를 만든다', () => {
+    const course = {
+      title: '목포역 근대역사·노적봉 코스',
+      recommendationReasons: ['기존 추천 이유'],
+      scoreBreakdown: {
+        preferenceMatch: {
+          score: 1,
+          weight: 0.35,
+          weightedScore: 0.35,
+          explanation: '내부 설명',
+          matchedCount: 2,
+          selectedCount: 2,
+          matchedPreferences: ['HISTORY_CULTURE', 'FOOD_MARKET'],
+        },
+        mobility: {
+          score: 1,
+          weight: 0.3,
+          weightedScore: 0.3,
+          explanation: '내부 설명',
+          fatigueScore: 1,
+          fatigueLevel: 'LOW',
+          walkingMinutes: 18,
+          transferCount: 0,
+        },
+        returnMargin: {
+          score: 1,
+          weight: 0.15,
+          weightedScore: 0.15,
+          explanation: '내부 설명',
+          slackMinutes: 42,
+          status: 'FEASIBLE',
+        },
+        localResource: {
+          score: 1,
+          weight: 0.12,
+          weightedScore: 0.12,
+          explanation: '내부 설명',
+        },
+        recordFit: {
+          score: 1,
+          weight: 0.08,
+          weightedScore: 0.08,
+          explanation: '내부 설명',
+        },
+      },
+    } as CourseSummary
+
+    expect(getTopRecommendationReasons(course, 3)).toEqual([
+      '목포역 근대역사·노적봉 코스가 역사·문화, 음식·시장 취향과 잘 맞아요.',
+      '환승 없이 이동하고, 관광지 사이는 총 18분 걸어요.',
+      '일정을 마친 뒤에도 귀가 시간까지 42분 여유가 있어요.',
+    ])
+  })
+
+  it('점수 근거가 없으면 기존 추천 이유를 사용한다', () => {
+    const course = {
+      recommendationReasons: ['첫 번째 이유', '두 번째 이유', '세 번째 이유'],
+    } as CourseSummary
+
+    expect(getTopRecommendationReasons(course, 2)).toEqual([
+      '첫 번째 이유',
+      '두 번째 이유',
+    ])
   })
 })

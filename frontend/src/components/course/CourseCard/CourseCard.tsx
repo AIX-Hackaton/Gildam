@@ -2,6 +2,7 @@ import type { CourseSummary } from '../../../types/course.ts'
 import {
   formatCompactLabel,
   formatRecommendationReason,
+  getTopRecommendationReasons,
   getReturnActionLabel,
   getReturnFeasibilityLabel,
 } from '../../../utils/coursePresentation.ts'
@@ -28,6 +29,10 @@ export function CourseCard({
       ? styles.returnAvailable
       : styles.returnTight
   const returnActionLabel = getReturnActionLabel(course.returnFeasibility)
+  const recommendationReasons = getTopRecommendationReasons(
+    course,
+    featured ? 3 : 2,
+  )
 
   return (
     <article className={`${styles.card} ${featured ? styles.featured : ''}`}>
@@ -73,11 +78,11 @@ export function CourseCard({
           ) : null}
         </div>
 
-        {featured ? (
+        {recommendationReasons.length > 0 ? (
           <section className={styles.reasons} aria-labelledby={`${course.id}-reason`}>
             <h3 id={`${course.id}-reason`}>추천 이유</h3>
             <ul>
-              {course.recommendationReasons.slice(0, 3).map((reason) => (
+              {recommendationReasons.map((reason) => (
                 <li key={reason}>{formatRecommendationReason(reason)}</li>
               ))}
             </ul>

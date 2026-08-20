@@ -36,6 +36,16 @@ export function ResultsContent({
   ].filter(Boolean) as string[]
 
   const [featuredCourse, ...alternativeCourses] = courses.slice(0, 3)
+  const scoreBreakdown = featuredCourse.scoreBreakdown
+  const recommendationCriteria = scoreBreakdown
+    ? [
+        { label: '취향 일치도', weight: scoreBreakdown.preferenceMatch.weight },
+        { label: '이동 부담', weight: scoreBreakdown.mobility.weight },
+        { label: '귀가 여유', weight: scoreBreakdown.returnMargin.weight },
+        { label: '지역성', weight: scoreBreakdown.localResource.weight },
+        { label: '기록 적합성', weight: scoreBreakdown.recordFit.weight },
+      ]
+    : []
 
   return (
     <>
@@ -46,10 +56,27 @@ export function ResultsContent({
         </h1>
       </section>
 
-      <div className={styles.conditionChips} aria-label="선택한 여행 조건">
-        {conditionLabels.map((label) => (
-          <span key={label}>{formatCompactLabel(label)}</span>
-        ))}
+      <div className={styles.conditionSummary}>
+        <div className={styles.conditionChips} aria-label="선택한 여행 조건">
+          {conditionLabels.map((label) => (
+            <span key={label}>{formatCompactLabel(label)}</span>
+          ))}
+        </div>
+
+        {recommendationCriteria.length > 0 ? (
+          <details className={styles.criteria}>
+            <summary>추천 기준 보기</summary>
+            <p>선택한 조건과 이동 가능성을 아래 비율로 반영했어요.</p>
+            <dl>
+              {recommendationCriteria.map(({ label, weight }) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{Math.round(weight * 100)}%</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
+        ) : null}
       </div>
 
       <div className={styles.rankedCourse}>
