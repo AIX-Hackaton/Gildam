@@ -1257,6 +1257,23 @@ components:
       - plan
       - max
       title: MinutesRange
+    MobilityComponentWeights:
+      properties:
+        walking:
+          type: number
+          title: Walking
+        transfer:
+          type: number
+          title: Transfer
+        transit:
+          type: number
+          title: Transit
+      type: object
+      required:
+      - walking
+      - transfer
+      - transit
+      title: MobilityComponentWeights
     MobilityScoreFactor:
       properties:
         score:
@@ -1287,6 +1304,11 @@ components:
         transferCount:
           type: integer
           title: Transfercount
+        roundTripTransitMinutes:
+          type: integer
+          title: Roundtriptransitminutes
+        componentWeights:
+          $ref: '#/components/schemas/MobilityComponentWeights'
       type: object
       required:
       - score
@@ -1297,6 +1319,8 @@ components:
       - fatigueLevel
       - walkingMinutes
       - transferCount
+      - roundTripTransitMinutes
+      - componentWeights
       title: MobilityScoreFactor
     PreferenceMatchScoreFactor:
       properties:

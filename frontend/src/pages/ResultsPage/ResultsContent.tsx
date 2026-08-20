@@ -8,7 +8,10 @@ import {
 } from '../../constants/travelConditionOptions.ts'
 import type { CourseSummary } from '../../types/course.ts'
 import type { TravelConditions } from '../../types/travelConditions.ts'
-import { formatCompactLabel } from '../../utils/coursePresentation.ts'
+import {
+  formatCompactLabel,
+  getMobilityRankComparison,
+} from '../../utils/coursePresentation.ts'
 import styles from './ResultsContent.module.css'
 
 interface ResultsContentProps {
@@ -38,6 +41,7 @@ export function ResultsContent({
   ].filter(Boolean) as string[]
 
   const [featuredCourse, ...alternativeCourses] = courses.slice(0, 3)
+  const mobilityComparison = getMobilityRankComparison(courses.slice(0, 3))
   const scoreBreakdown = featuredCourse.scoreBreakdown
   const recommendationCriteria = scoreBreakdown
     ? [
@@ -45,7 +49,6 @@ export function ResultsContent({
         { label: '이동 부담', weight: scoreBreakdown.mobility.weight },
         { label: '귀가 여유', weight: scoreBreakdown.returnMargin.weight },
         { label: '지역성', weight: scoreBreakdown.localResource.weight },
-        { label: '기록 적합성', weight: scoreBreakdown.recordFit.weight },
       ]
     : []
 
@@ -77,6 +80,24 @@ export function ResultsContent({
                 </div>
               ))}
             </dl>
+
+            {mobilityComparison ? (
+              <div className={styles.mobilityComparison}>
+                <p className={styles.comparisonLabel}>이동 부담 세부 기준</p>
+                <p className={styles.componentWeights}>
+                  {mobilityComparison.weights
+                    .map(
+                      ({ label, value }) =>
+                        `${label} ${Math.round(value * 100)}%`,
+                    )
+                    .join(' · ')}
+                </p>
+                <p className={styles.comparisonLabel}>이번 순위가 갈린 이유</p>
+                <p className={styles.comparisonReason}>
+                  {mobilityComparison.reason}
+                </p>
+              </div>
+            ) : null}
           </details>
         ) : null}
       </div>

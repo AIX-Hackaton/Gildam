@@ -277,6 +277,8 @@ def _build_score_breakdown(
             "fatigueLevel": fatigue["level"],
             "walkingMinutes": course["walkingMinutes"]["plan"],
             "transferCount": course["transferCount"],
+            "roundTripTransitMinutes": course["roundTripTransitMinutes"],
+            "componentWeights": MOBILITY_PROFILES[request.mobility]["weights"],
         },
         "returnMargin": {
             **_factor(

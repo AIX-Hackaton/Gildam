@@ -256,6 +256,22 @@ class RecommendationsApiTest(unittest.TestCase):
                 by_id["DY_LOW_01"]["scoreBreakdown"]["mobility"]["score"],
             )
 
+    def test_mobility_breakdown_exposes_structured_comparison_inputs(self) -> None:
+        data = self._post(
+            duration="FULL_DAY",
+            preferences=["HISTORY_CULTURE"],
+            mobility="LOW_BURDEN",
+        ).json()
+        mobility = data["courses"][0]["scoreBreakdown"]["mobility"]
+
+        self.assertEqual(
+            mobility["componentWeights"],
+            {"walking": 0.45, "transfer": 0.3, "transit": 0.25},
+        )
+        self.assertIsInstance(mobility["walkingMinutes"], int)
+        self.assertIsInstance(mobility["transferCount"], int)
+        self.assertIsInstance(mobility["roundTripTransitMinutes"], int)
+
     def test_recommended_unverified_transport_has_second_check_warning(self) -> None:
         data = self._post().json()
         self.assertTrue(data["courses"])

@@ -61,6 +61,12 @@ export interface MobilityScoreFactor extends RecommendationScoreFactor {
   fatigueLevel: FatigueLevel
   walkingMinutes: number
   transferCount: number
+  roundTripTransitMinutes: number
+  componentWeights: {
+    walking: number
+    transfer: number
+    transit: number
+  }
 }
 
 export interface ReturnMarginScoreFactor extends RecommendationScoreFactor {

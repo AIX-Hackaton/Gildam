@@ -3,10 +3,47 @@ import { describe, expect, it } from 'vitest'
 import type { CourseSummary } from '../types/course.ts'
 import {
   formatTransportGuidance,
+  getMobilityRankComparison,
   getTopRecommendationReasons,
   getReturnActionLabel,
   getReturnFeasibilityLabel,
 } from './coursePresentation.ts'
+
+describe('getMobilityRankComparison', () => {
+  it('환승 비중이 가장 높으면 2·3위의 환승 횟수로 순위를 설명한다', () => {
+    const createCourse = (title: string, transferCount: number) =>
+      ({
+        title,
+        scoreBreakdown: {
+          mobility: {
+            walkingMinutes: 52,
+            transferCount,
+            roundTripTransitMinutes: 140,
+            componentWeights: {
+              walking: 0.25,
+              transfer: 0.6,
+              transit: 0.15,
+            },
+          },
+        },
+      }) as CourseSummary
+
+    const comparison = getMobilityRankComparison([
+      createCourse('한옥고택 반걸음', 0),
+      createCourse('대나무숲 온걸음', 0),
+      createCourse('세월옛길 온걸음', 2),
+    ])
+
+    expect(comparison?.weights).toEqual([
+      { label: '도보', value: 0.25 },
+      { label: '환승', value: 0.6 },
+      { label: '왕복 이동', value: 0.15 },
+    ])
+    expect(comparison?.reason).toBe(
+      '대나무숲 온걸음은 환승 없이 이동할 수 있어 세월옛길 온걸음보다 앞섰어요.',
+    )
+  })
+})
 
 describe('getReturnFeasibilityLabel', () => {
   it.each([
@@ -101,6 +138,12 @@ describe('getTopRecommendationReasons', () => {
           fatigueLevel: 'LOW',
           walkingMinutes: 18,
           transferCount: 0,
+          roundTripTransitMinutes: 84,
+          componentWeights: {
+            walking: 0.45,
+            transfer: 0.3,
+            transit: 0.25,
+          },
         },
         returnMargin: {
           score: 1,

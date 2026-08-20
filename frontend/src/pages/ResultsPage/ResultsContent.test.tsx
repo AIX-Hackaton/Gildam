@@ -8,11 +8,16 @@ import { ResultsContent } from './ResultsContent.tsx'
 const conditions: TravelConditions = {
   departure: 'USQUARE',
   duration: 'FULL_DAY',
-  mobility: 'ANY',
+  mobility: 'LOW_BURDEN',
   preferences: ['HISTORY_CULTURE'],
 }
 
-function createCourse(id: string): CourseSummary {
+function createCourse(
+  id: string,
+  mobilityOverrides: Partial<
+    NonNullable<CourseSummary['scoreBreakdown']>['mobility']
+  > = {},
+): CourseSummary {
   return {
     id,
     title: `${id} 코스`,
@@ -44,6 +49,13 @@ function createCourse(id: string): CourseSummary {
         fatigueLevel: 'LOW',
         walkingMinutes: 20,
         transferCount: 0,
+        roundTripTransitMinutes: 84,
+        componentWeights: {
+          walking: 0.45,
+          transfer: 0.3,
+          transit: 0.25,
+        },
+        ...mobilityOverrides,
       },
       returnMargin: {
         score: 1,
@@ -84,8 +96,16 @@ describe('ResultsContent', () => {
         conditions={conditions}
         courses={[
           createCourse('첫 번째'),
-          createCourse('두 번째'),
-          createCourse('세 번째'),
+          createCourse('두 번째', {
+            walkingMinutes: 28,
+            transferCount: 2,
+            roundTripTransitMinutes: 84,
+          }),
+          createCourse('세 번째', {
+            walkingMinutes: 52,
+            transferCount: 0,
+            roundTripTransitMinutes: 140,
+          }),
           createCourse('네 번째'),
         ]}
         onOpenCourse={vi.fn()}
@@ -102,11 +122,32 @@ describe('ResultsContent', () => {
     expect(screen.getByText('추천 기준 보기')).toBeInTheDocument()
     expect(screen.getByText('취향 일치도')).toBeInTheDocument()
     expect(screen.getByText('35%')).toBeInTheDocument()
+    expect(screen.queryByText('기록 적합성')).not.toBeInTheDocument()
+    expect(screen.getByText('이동 부담 세부 기준')).toBeInTheDocument()
+    expect(
+      screen.getByText('도보 45% · 환승 30% · 왕복 이동 25%'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('이번 순위가 갈린 이유')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        '두 번째 코스는 도보 28분·왕복 이동 84분으로 세 번째 코스보다 이동 부담이 낮아 2위가 됐어요.',
+      ),
+    ).toBeInTheDocument()
     expect(
       screen.getAllByText(
         '• 환승 없이 이동하고, 관광지 사이는 총 20분 걸어요.',
       ),
-    ).toHaveLength(3)
+    ).toHaveLength(1)
+    expect(
+      screen.getByText(
+        '• 환승 2회, 관광지 사이는 총 28분 걸어요.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        '• 환승 없이 이동하고, 관광지 사이는 총 52분 걸어요.',
+      ),
+    ).toBeInTheDocument()
     expect(
       screen.getAllByText(
         '• 일정을 마친 뒤에도 귀가 시간까지 42분 여유가 있어요.',

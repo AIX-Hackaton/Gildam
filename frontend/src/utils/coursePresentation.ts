@@ -91,6 +91,87 @@ export function getTopRecommendationReasons(
     .map(({ reason }) => reason(breakdown))
 }
 
+export interface MobilityRankComparison {
+  weights: Array<{ label: string; value: number }>
+  reason: string
+}
+
+function withSubjectParticle(label: string) {
+  const lastCharacter = label.at(-1)
+  if (!lastCharacter) return label
+
+  const codePoint = lastCharacter.charCodeAt(0) - 0xac00
+  const hasFinalConsonant =
+    codePoint >= 0 && codePoint <= 0xd7a3 - 0xac00 && codePoint % 28 !== 0
+
+  return `${label}${hasFinalConsonant ? '은' : '는'}`
+}
+
+export function getMobilityRankComparison(
+  courses: CourseSummary[],
+): MobilityRankComparison | null {
+  if (courses.length < 3) return null
+
+  const reference = courses[0].scoreBreakdown?.mobility
+  const second = courses[1]
+  const third = courses[2]
+  const secondMobility = second.scoreBreakdown?.mobility
+  const thirdMobility = third.scoreBreakdown?.mobility
+
+  if (!reference || !secondMobility || !thirdMobility) return null
+
+  const { walking, transfer, transit } = reference.componentWeights
+  const secondSubject = withSubjectParticle(second.title)
+  const weights = [
+    { label: '도보', value: walking },
+    { label: '환승', value: transfer },
+    { label: '왕복 이동', value: transit },
+  ]
+
+  if (transfer > walking && transfer > transit) {
+    const transferDescription =
+      secondMobility.transferCount === 0
+        ? '환승 없이 이동할 수 있어'
+        : `환승 ${secondMobility.transferCount}회로 ${third.title}의 ${thirdMobility.transferCount}회보다 적어`
+
+    return {
+      weights,
+      reason: `${secondSubject} ${transferDescription} ${third.title}보다 앞섰어요.`,
+    }
+  }
+
+  const secondTransit = secondMobility.roundTripTransitMinutes
+  const thirdTransit = thirdMobility.roundTripTransitMinutes
+  const hasLowerWalking = secondMobility.walkingMinutes < thirdMobility.walkingMinutes
+  const hasLowerTransit = secondTransit < thirdTransit
+
+  if (hasLowerWalking && hasLowerTransit) {
+    return {
+      weights,
+      reason: `${secondSubject} 도보 ${secondMobility.walkingMinutes}분·왕복 이동 ${secondTransit}분으로 ${third.title}보다 이동 부담이 낮아 2위가 됐어요.`,
+    }
+  }
+
+  if (hasLowerWalking) {
+    return {
+      weights,
+      reason: `${secondSubject} 도보 ${secondMobility.walkingMinutes}분으로 ${third.title}보다 적게 걸어 2위가 됐어요.`,
+    }
+  }
+
+  if (hasLowerTransit) {
+    return {
+      weights,
+      reason: `${secondSubject} 왕복 이동 ${secondTransit}분으로 ${third.title}보다 이동시간이 짧아 2위가 됐어요.`,
+    }
+  }
+
+  return {
+    weights,
+    reason: `${secondSubject} 도보·환승·왕복 이동을 함께 반영한 결과 ${third.title}보다 앞섰어요.`,
+  }
+}
+
 export function getReturnFeasibilityLabel(status: ReturnFeasibilityStatus) {
   if (status === 'FEASIBLE') return '귀가 가능'
   if (status === 'TIGHT') return '귀가 빠듯'

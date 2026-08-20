@@ -59,11 +59,19 @@ class PreferenceMatchScoreFactor(RecommendationScoreFactor):
     matchedPreferences: list[PreferenceId]
 
 
+class MobilityComponentWeights(BaseModel):
+    walking: float
+    transfer: float
+    transit: float
+
+
 class MobilityScoreFactor(RecommendationScoreFactor):
     fatigueScore: float
     fatigueLevel: FatigueLevel
     walkingMinutes: int
     transferCount: int
+    roundTripTransitMinutes: int
+    componentWeights: MobilityComponentWeights
 
 
 class ReturnMarginScoreFactor(RecommendationScoreFactor):
