@@ -38,6 +38,23 @@ describe('PlanPage AI preference interpretation', () => {
     vi.unstubAllGlobals()
   })
 
+  it('starts with every mobility option unselected', () => {
+    renderPlanPage()
+
+    expect(screen.getByRole('button', { name: '환승 최소' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(screen.getByRole('button', { name: '도보 적게' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(screen.getByRole('button', { name: '상관없음' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
   it('replaces the manual preferences and mobility with a successful interpretation', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(createInterpretationResponse())
@@ -81,7 +98,7 @@ describe('PlanPage AI preference interpretation', () => {
       'aria-pressed',
       'false',
     )
-    expect(screen.getByRole('button', { name: '이동 부담 낮게' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '도보 적게' })).toHaveAttribute(
       'aria-pressed',
       'true',
     )

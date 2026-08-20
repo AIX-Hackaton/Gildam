@@ -213,9 +213,7 @@ export function PlanPage() {
           form="travel-plan-form"
           className={styles.cta}
           fullWidth
-          disabled={
-            conditions.departure === null || conditions.duration === null
-          }
+          disabled={!isComplete}
           loading={isSubmitting}
         >
           코스 추천받기

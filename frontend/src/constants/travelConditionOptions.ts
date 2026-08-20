@@ -29,7 +29,7 @@ export const preferenceOptions: Array<TravelConditionOption<PreferenceId>> = [
 
 export const mobilityOptions: Array<TravelConditionOption<MobilityId>> = [
   { id: 'MIN_TRANSFER', label: '환승 최소' },
-  { id: 'LOW_BURDEN', label: '이동 부담 낮게' },
+  { id: 'LOW_BURDEN', label: '도보 적게' },
   { id: 'ANY', label: '상관없음' },
 ]
 

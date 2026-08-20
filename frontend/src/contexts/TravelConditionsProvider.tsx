@@ -11,7 +11,7 @@ function createDefaultConditions(): TravelConditions {
     departure: null,
     duration: null,
     preferences: [],
-    mobility: 'ANY',
+    mobility: null,
   }
 }
 
@@ -45,6 +45,7 @@ export function TravelConditionsProvider({
       isComplete:
         conditions.departure !== null &&
         conditions.duration !== null &&
+        conditions.mobility !== null &&
         conditions.preferences.length > 0,
     }),
     [conditions],

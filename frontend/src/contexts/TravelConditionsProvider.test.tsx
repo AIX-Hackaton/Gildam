@@ -36,7 +36,7 @@ describe('TravelConditionsProvider', () => {
     renderProvider()
 
     expect(screen.getByLabelText('여행 조건 상태')).toHaveTextContent(
-      '{"departure":null,"duration":null,"preferences":[],"mobility":"ANY"}|incomplete',
+      '{"departure":null,"duration":null,"preferences":[],"mobility":null}|incomplete',
     )
   })
 })

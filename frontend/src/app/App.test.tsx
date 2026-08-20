@@ -116,7 +116,7 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('asks for a preference when submitting without one', async () => {
+  it('keeps the recommendation button disabled until a preference is selected', async () => {
     const user = userEvent.setup()
 
     render(
@@ -131,13 +131,12 @@ describe('App', () => {
 
     await user.click(screen.getByRole('button', { name: '유스퀘어' }))
     await user.click(screen.getByRole('button', { name: '6시간' }))
+    await user.click(screen.getByRole('button', { name: '상관없음' }))
+
+    expect(submitButton).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: '음식·시장' }))
 
     expect(submitButton).toBeEnabled()
-    await user.click(submitButton)
-
-    expect(screen.getByRole('alert')).toHaveTextContent('취향을 선택해주세요')
-    expect(
-      screen.getByRole('heading', { name: '여행 조건을 선택해주세요' }),
-    ).toBeInTheDocument()
   })
 })

@@ -11,5 +11,5 @@ export interface TravelConditions {
   departure: DepartureId | null
   duration: DurationId | null
   preferences: PreferenceId[]
-  mobility: MobilityId
+  mobility: MobilityId | null
 }
