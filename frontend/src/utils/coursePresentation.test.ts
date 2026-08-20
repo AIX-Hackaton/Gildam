@@ -80,7 +80,7 @@ describe('formatTransportGuidance', () => {
 describe('getTopRecommendationReasons', () => {
   it('가중 점수가 높은 항목부터 사용자용 추천 이유를 만든다', () => {
     const course = {
-      title: '목포역 근대역사·노적봉 코스',
+      title: '근대골목 반걸음',
       recommendationReasons: ['기존 추천 이유'],
       scoreBreakdown: {
         preferenceMatch: {
@@ -126,7 +126,7 @@ describe('getTopRecommendationReasons', () => {
     } as CourseSummary
 
     expect(getTopRecommendationReasons(course, 3)).toEqual([
-      '목포역 근대역사·노적봉 코스가 역사·문화, 음식·시장 취향과 잘 맞아요.',
+      '근대골목 반걸음 코스는 역사·문화, 음식·시장 취향과 잘 맞아요.',
       '환승 없이 이동하고, 관광지 사이는 총 18분 걸어요.',
       '일정을 마친 뒤에도 귀가 시간까지 42분 여유가 있어요.',
     ])

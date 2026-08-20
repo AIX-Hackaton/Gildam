@@ -49,7 +49,7 @@ COURSE_DETAILS: list[dict[str, Any]] = [
     {
         "schemaVersion": SCHEMA_VERSION,
         "id": "DY_LOW_01",
-        "title": "담양 읍내 저도보 산책 코스",
+        "title": "초록숲길 반걸음",
         "region": "담양",
         "courseType": "LOW_FATIGUE",
         "departurePoint": "USQUARE",
@@ -283,7 +283,7 @@ COURSE_DETAILS: list[dict[str, Any]] = [
     {
         "schemaVersion": SCHEMA_VERSION,
         "id": "DY_NORMAL_01",
-        "title": "담양 대나무 문화 확장 코스",
+        "title": "대나무숲 온걸음",
         "region": "담양",
         "courseType": "NORMAL",
         "departurePoint": "USQUARE",
@@ -525,7 +525,7 @@ COURSE_DETAILS: list[dict[str, Any]] = [
     {
         "schemaVersion": SCHEMA_VERSION,
         "id": "NJ_LOW_01",
-        "title": "나주 읍성·곰탕 저환승 코스",
+        "title": "한옥고택 반걸음",
         "region": "나주",
         "courseType": "LOW_TRANSFER",
         "departurePoint": "USQUARE",
@@ -759,7 +759,7 @@ COURSE_DETAILS: list[dict[str, Any]] = [
     {
         "schemaVersion": SCHEMA_VERSION,
         "id": "NJ_NORMAL_01",
-        "title": "나주 읍성·영산포 역사 코스",
+        "title": "세월옛길 온걸음",
         "region": "나주",
         "courseType": "NORMAL",
         "departurePoint": "USQUARE",
@@ -1001,7 +1001,7 @@ COURSE_DETAILS: list[dict[str, Any]] = [
     {
         "schemaVersion": SCHEMA_VERSION,
         "id": "MP_LOW_01",
-        "title": "목포역 근대역사·노적봉 코스",
+        "title": "근대골목 반걸음",
         "region": "목포",
         "courseType": "LOW_TRANSFER_WALKING",
         "departurePoint": "GWANGJU_SONGJEONG",
@@ -1225,7 +1225,7 @@ COURSE_DETAILS: list[dict[str, Any]] = [
     {
         "schemaVersion": SCHEMA_VERSION,
         "id": "MP_NORMAL_02",
-        "title": "목포역 도보권 근대문화 확장 코스",
+        "title": "원도심길 온걸음",
         "region": "목포",
         "courseType": "NORMAL_WALKING",
         "departurePoint": "GWANGJU_SONGJEONG",

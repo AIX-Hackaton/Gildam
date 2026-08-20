@@ -54,10 +54,10 @@ export function getTopRecommendationReasons(
         )
 
         if (matchedPreferences.length === 1) {
-          return `${course.title}가 ${matchedPreferences[0]} 취향과 잘 맞아요.`
+          return `${course.title} 코스는 ${matchedPreferences[0]} 취향과 잘 맞아요.`
         }
 
-        return `${course.title}가 ${matchedPreferences.join(', ')} 취향과 잘 맞아요.`
+        return `${course.title} 코스는 ${matchedPreferences.join(', ')} 취향과 잘 맞아요.`
       },
     },
     {

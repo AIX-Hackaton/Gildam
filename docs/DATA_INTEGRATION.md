@@ -36,12 +36,12 @@ Mock 데이터는 저장소에 존재하지 않습니다. (`frontend/src/data/mo
 
 | 코스ID | 코스명 | 출발지 | 시간 | 계획(분) | 도보 | 환승 | 피로도 | 검증상태 | 노출등급 |
 |---|---|---|---|---|---|---|---|---|---|
-| DY_LOW_01 | 담양 읍내 저도보 산책 | 유스퀘어 | 6시간 | 354 (323~396) | 14 | 0 | MEDIUM | PARTIALLY_VERIFIED | MANUAL_REVIEW |
-| DY_NORMAL_01 | 담양 대나무 문화 확장 | 유스퀘어 | 하루 | 462 (432~492) | 52 | 0 | HIGH | PARTIALLY_VERIFIED | DEMO_ONLY |
-| NJ_LOW_01 | 나주 읍성·곰탕 저환승 | 유스퀘어 | 6시간 | 289 (279~299) | 35 | 0 | MEDIUM | PARTIALLY_VERIFIED | MANUAL_REVIEW |
-| NJ_NORMAL_01 | 나주 읍성·영산포 역사 | 유스퀘어 | 하루 | 422 (392~452) | 28 | 2 | HIGH | PARTIALLY_VERIFIED | DEMO_ONLY |
-| MP_LOW_01 | 목포역 근대역사·노적봉 | 광주송정역 | 6시간 | 359 (318~396) | 39 | 0 | HIGH | PARTIALLY_VERIFIED | MANUAL_REVIEW |
-| MP_NORMAL_02 | 목포역 도보권 근대문화 확장 | 광주송정역 | 하루 | 423 (383~463) | 60 | 0 | HIGH | NEEDS_RECHECK | DEMO_ONLY |
+| DY_LOW_01 | 초록숲길 반걸음 | 유스퀘어 | 6시간 | 354 (323~396) | 14 | 0 | MEDIUM | PARTIALLY_VERIFIED | MANUAL_REVIEW |
+| DY_NORMAL_01 | 대나무숲 온걸음 | 유스퀘어 | 하루 | 462 (432~492) | 52 | 0 | HIGH | PARTIALLY_VERIFIED | DEMO_ONLY |
+| NJ_LOW_01 | 한옥고택 반걸음 | 유스퀘어 | 6시간 | 289 (279~299) | 35 | 0 | MEDIUM | PARTIALLY_VERIFIED | MANUAL_REVIEW |
+| NJ_NORMAL_01 | 세월옛길 온걸음 | 유스퀘어 | 하루 | 422 (392~452) | 28 | 2 | HIGH | PARTIALLY_VERIFIED | DEMO_ONLY |
+| MP_LOW_01 | 근대골목 반걸음 | 광주송정역 | 6시간 | 359 (318~396) | 39 | 0 | HIGH | PARTIALLY_VERIFIED | MANUAL_REVIEW |
+| MP_NORMAL_02 | 원도심길 온걸음 | 광주송정역 | 하루 | 423 (383~463) | 60 | 0 | HIGH | NEEDS_RECHECK | DEMO_ONLY |
 | MP_NORMAL_01 | 목포 갓바위·자연사 (보류) | — | — | 420 | 41 | 2 | HIGH | NEEDS_RECHECK | **BLOCKED** |
 
 괄호 안은 `(최소~최대)`로, 배차 간격과 지연을 반영한 범위입니다.
