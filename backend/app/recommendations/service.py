@@ -42,11 +42,11 @@ from backend.app.traffic.models import TrafficEvaluation
 MAX_RESULTS = 3
 
 RANKING_WEIGHTS: dict[str, float] = {
-    "preferenceMatch": 0.35,
+    "preferenceMatch": 0.40,
     "mobility": 0.30,
-    "returnMargin": 0.15,
+    "returnMargin": 0.18,
     "localResource": 0.12,
-    "recordFit": 0.08,
+    "recordFit": 0.0,
 }
 
 #: 이동 부담 조건별 점수 가중치.
@@ -199,26 +199,6 @@ def _local_resource_score(course: dict[str, Any]) -> tuple[float, str]:
     )
 
 
-def _record_fit_score(
-    course: dict[str, Any], request: RecommendationRequest
-) -> tuple[float, str]:
-    prompts = len(course.get("scenePrompts", []))
-    base = _clamp(prompts / 3)
-    wants_memory = "MEMORY" in request.preferences
-    supports_memory = "MEMORY" in course["preferences"]
-
-    if wants_memory:
-        score = base if supports_memory else base * 0.5
-        detail = "감성기록 취향 선택" + (
-            " · 코스가 기록 요소를 포함" if supports_memory else " · 코스 기록 요소 약함"
-        )
-    else:
-        score = base * 0.7
-        detail = "감성기록 미선택으로 비중 축소"
-
-    return score, f"오늘 담아볼 장면 {prompts}개, {detail}"
-
-
 def _mobility_factor_score(level_score: int) -> float:
     # 피로도 요소 점수는 1(가장 낮음)~3(가장 높음) 범위입니다.
     # 추천 점수에서는 1.0(가장 적합)~0.0(가장 부적합)으로 뒤집어 사용합니다.
@@ -271,7 +251,6 @@ def _build_score_breakdown(
     preference_score = len(matched) / len(selected)
 
     local_score, local_explanation = _local_resource_score(course)
-    record_score, record_explanation = _record_fit_score(course, request)
     mobility_score, mobility_explanation = _mobility_score(
         course, fatigue, request.mobility
     )
@@ -313,7 +292,11 @@ def _build_score_breakdown(
             "status": feasibility["status"],
         },
         "localResource": _factor(local_score, "localResource", local_explanation),
-        "recordFit": _factor(record_score, "recordFit", record_explanation),
+        "recordFit": _factor(
+            0.0,
+            "recordFit",
+            "기록 적합도는 최종 추천 점수에서 제외했습니다.",
+        ),
     }
 
 

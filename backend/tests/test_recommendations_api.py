@@ -240,6 +240,8 @@ class RecommendationsApiTest(unittest.TestCase):
         )
         total = sum(factor["weightedScore"] for factor in breakdown.values())
         self.assertAlmostEqual(course["recommendationScore"], total, places=3)
+        self.assertEqual(breakdown["recordFit"]["weight"], 0.0)
+        self.assertEqual(breakdown["recordFit"]["weightedScore"], 0.0)
 
     def test_more_walking_lowers_mobility_score(self) -> None:
         data = self._post(
