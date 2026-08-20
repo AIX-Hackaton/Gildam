@@ -3,10 +3,11 @@
 순서
 1. 스키마 검사 통과 코스만 후보로 사용
 2. 노출 정책(BLOCKED·비주력) 강제 제외
-3. 하드 필터: 출발지 / 적용 요일 / 가능 시간 / 귀가 가능성 / 이동 부담
-4. 취향 매칭이 하나도 없으면 제외
-5. 남은 코스를 설명 가능한 가중합으로 점수화·정렬
-6. 결과가 없으면 "어떤 조건을 바꾸면 몇 개가 나오는지" 대안을 계산
+3. 하드 필터: 출발지 / 적용 요일 / 가능 시간 / 귀가 가능성
+4. 이동 부담은 사용자가 고른 모드별 가중치로 점수화
+5. 취향 매칭이 하나도 없으면 제외
+6. 남은 코스를 설명 가능한 가중합으로 점수화·정렬
+7. 결과가 없으면 "어떤 조건을 바꾸면 몇 개가 나오는지" 대안을 계산
 
 핵심 원칙: **조건을 만족하지 않는 코스를 억지로 끼워 넣지 않습니다.**
 결과가 0개면 0개로 응답하고, 대신 조건 재설정 힌트를 함께 돌려줍니다.
@@ -48,25 +49,21 @@ RANKING_WEIGHTS: dict[str, float] = {
     "recordFit": 0.08,
 }
 
-#: 이동 부담 조건별 허용 상한.
-MOBILITY_LIMITS: dict[str, dict[str, Any]] = {
+#: 이동 부담 조건별 점수 가중치.
+# 사용자의 선택은 후보를 잘라내는 하드 필터가 아니라, 통과 후보 안에서 무엇을
+# 더 강하게 우대할지 결정하는 소프트 랭킹 신호로 사용합니다.
+MOBILITY_PROFILES: dict[str, dict[str, Any]] = {
     "MIN_TRANSFER": {
         "label": "환승 최소",
-        "maxTransferCount": 0,
-        "maxWalkingMinutes": None,
-        "maxFatigueScore": None,
+        "weights": {"walking": 0.25, "transfer": 0.60, "transit": 0.15},
     },
     "LOW_BURDEN": {
         "label": "이동 부담 낮게",
-        "maxTransferCount": 1,
-        "maxWalkingMinutes": 40,
-        "maxFatigueScore": 2.35,
+        "weights": {"walking": 0.45, "transfer": 0.30, "transit": 0.25},
     },
     "ANY": {
         "label": "상관없음",
-        "maxTransferCount": None,
-        "maxWalkingMinutes": None,
-        "maxFatigueScore": None,
+        "weights": {"walking": 0.40, "transfer": 0.35, "transit": 0.25},
     },
 }
 
@@ -157,42 +154,6 @@ def _collect_exclusion_reasons(
             )
         )
 
-    limits = MOBILITY_LIMITS[request.mobility]
-    max_transfer = limits["maxTransferCount"]
-    max_walking = limits["maxWalkingMinutes"]
-    max_fatigue = limits["maxFatigueScore"]
-
-    if max_transfer is not None and course["transferCount"] > max_transfer:
-        reasons.append(
-            ExclusionReason(
-                code="MOBILITY_LIMIT_EXCEEDED",
-                message=(
-                    f"환승 {course['transferCount']}회로 선택한 이동 부담 조건"
-                    f"({limits['label']})을 넘습니다."
-                ),
-            )
-        )
-    elif max_walking is not None and course["walkingMinutes"]["plan"] > max_walking:
-        reasons.append(
-            ExclusionReason(
-                code="MOBILITY_LIMIT_EXCEEDED",
-                message=(
-                    f"이동 도보 {course['walkingMinutes']['plan']}분으로 선택한 "
-                    f"이동 부담 조건({limits['label']})을 넘습니다."
-                ),
-            )
-        )
-    elif max_fatigue is not None and fatigue["score"] > max_fatigue:
-        reasons.append(
-            ExclusionReason(
-                code="MOBILITY_LIMIT_EXCEEDED",
-                message=(
-                    f"피로도 점수 {fatigue['score']}로 선택한 이동 부담 조건"
-                    f"({limits['label']})을 넘습니다."
-                ),
-            )
-        )
-
     matched = set(course["preferences"]) & set(request.preferences)
     if not matched:
         reasons.append(
@@ -258,9 +219,35 @@ def _record_fit_score(
     return score, f"오늘 담아볼 장면 {prompts}개, {detail}"
 
 
-def _mobility_score(fatigue: dict[str, Any]) -> float:
-    # 피로도 점수는 1(가장 낮음)~3(가장 높음) 범위입니다.
-    return (3 - fatigue["score"]) / 2
+def _mobility_factor_score(level_score: int) -> float:
+    # 피로도 요소 점수는 1(가장 낮음)~3(가장 높음) 범위입니다.
+    # 추천 점수에서는 1.0(가장 적합)~0.0(가장 부적합)으로 뒤집어 사용합니다.
+    return (3 - level_score) / 2
+
+
+def _mobility_score(
+    course: dict[str, Any],
+    fatigue: dict[str, Any],
+    mobility_id: str,
+) -> tuple[float, str]:
+    profile = MOBILITY_PROFILES[mobility_id]
+    weights: dict[str, float] = profile["weights"]
+    factors = {factor["key"]: factor for factor in fatigue["factors"]}
+    score = 0.0
+
+    for key, weight in weights.items():
+        score += _mobility_factor_score(factors[key]["levelScore"]) * weight
+
+    explanation = (
+        f"{profile['label']} 기준: 도보 {course['walkingMinutes']['plan']}분"
+        f"(가중치 {weights['walking']:.0%}) · "
+        f"환승 {course['transferCount']}회"
+        f"(가중치 {weights['transfer']:.0%}) · "
+        f"왕복 교통 {course['roundTripTransitMinutes']}분"
+        f"(가중치 {weights['transit']:.0%})"
+    )
+
+    return score, explanation
 
 
 def _return_margin_score(feasibility: dict[str, Any]) -> float:
@@ -285,7 +272,9 @@ def _build_score_breakdown(
 
     local_score, local_explanation = _local_resource_score(course)
     record_score, record_explanation = _record_fit_score(course, request)
-    mobility_score = _mobility_score(fatigue)
+    mobility_score, mobility_explanation = _mobility_score(
+        course, fatigue, request.mobility
+    )
     margin_score = _return_margin_score(feasibility)
 
     return {
@@ -303,12 +292,7 @@ def _build_score_breakdown(
             **_factor(
                 mobility_score,
                 "mobility",
-                (
-                    f"이동 도보 {course['walkingMinutes']['plan']}분 · "
-                    f"환승 {course['transferCount']}회 · "
-                    f"왕복 교통 {course['roundTripTransitMinutes']}분 → "
-                    f"피로도 {fatigue['level']}({fatigue['score']})"
-                ),
+                f"{mobility_explanation} → 피로도 {fatigue['level']}({fatigue['score']})",
             ),
             "fatigueScore": fatigue["score"],
             "fatigueLevel": fatigue["level"],

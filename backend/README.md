@@ -166,7 +166,7 @@ curl -X POST http://127.0.0.1:8001/api/recommendations \
 | `departure` | `USQUARE`, `GWANGJU_SONGJEONG` |
 | `duration` | `SIX_HOURS`, `FULL_DAY` |
 | `preferences` | `NATURE_WALK`, `HISTORY_CULTURE`, `FOOD_MARKET`, `MEMORY` (1개 이상) |
-| `mobility` | `MIN_TRANSFER`(환승 0회), `LOW_BURDEN`(도보 40분·환승 1회 이하), `ANY` |
+| `mobility` | `MIN_TRANSFER`(환승 최소), `LOW_BURDEN`(이동 부담 낮게), `ANY` |
 
 응답:
 
@@ -194,6 +194,9 @@ curl -X POST http://127.0.0.1:8001/api/recommendations \
 `UNSUPPORTED_DEPARTURE`, `DAY_NOT_SUPPORTED`, `TIME_LIMIT_EXCEEDED`,
 `RETURN_NOT_FEASIBLE`, `MOBILITY_LIMIT_EXCEEDED`, `PREFERENCE_MISMATCH`,
 `BLOCKED_BY_EXPOSURE_POLICY`, `SCHEMA_INVALID`, `REALTIME_TRAFFIC_BLOCKED`
+
+현재 추천 파이프라인은 이동 부담 조건을 탈락 필터가 아니라 점수 가중치로 반영하므로
+`MOBILITY_LIMIT_EXCEEDED`는 호환성을 위해 남아 있는 코드이며 새 응답에서는 발생하지 않습니다.
 
 ## 오류 응답 규격
 
@@ -248,7 +251,7 @@ backend/
 → ② 노출 정책 적용 (BLOCKED 제거)
 → ③ 출발지 / 운영 요일 필터
 → ④ 가능 시간 + 귀가 가능성 필터 (최악값 + 배차/계획회차/예약 정책)
-→ ⑤ 이동 부담(mobility) 필터
+→ ⑤ 이동 부담(mobility) 점수화 (선택 모드별 가중치 적용)
 → ⑥ 취향 필터
 → ⑦ 실시간 귀가 교통 확인 (NORMAL/TIGHT/BLOCKED/UNKNOWN)
 → ⑧ 가중 점수 산정
@@ -268,6 +271,15 @@ backend/
 
 점수는 1에 가까울수록 낮은 부담, 3에 가까울수록 높은 부담입니다.
 계산값과 데이터 표기값이 다르면 **더 보수적인 쪽**을 채택하고, 차이는 `/health`에 남깁니다.
+
+추천 점수의 이동 부담 적합도는 같은 피로도 요소를 쓰되, 사용자가 고른 이동 조건에 따라
+다른 가중치를 적용합니다.
+
+| mobility | 도보 | 환승 | 왕복 교통 |
+|---|---:|---:|---:|
+| `MIN_TRANSFER` | 25% | 60% | 15% |
+| `LOW_BURDEN` | 45% | 30% | 25% |
+| `ANY` | 40% | 35% | 25% |
 
 ## Ranking
 

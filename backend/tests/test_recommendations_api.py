@@ -141,22 +141,41 @@ class RecommendationsApiTest(unittest.TestCase):
 
     # -- 조건 반응성 ---------------------------------------------------
 
-    def test_mobility_condition_changes_results(self) -> None:
+    def test_mobility_condition_changes_scores_instead_of_filtering(self) -> None:
         relaxed = self._post(
             duration="FULL_DAY", preferences=["HISTORY_CULTURE"], mobility="ANY"
         ).json()
-        strict = self._post(
+        transfer_focused = self._post(
             duration="FULL_DAY",
             preferences=["HISTORY_CULTURE"],
             mobility="MIN_TRANSFER",
         ).json()
 
         relaxed_ids = {course["id"] for course in relaxed["courses"]}
-        strict_ids = {course["id"] for course in strict["courses"]}
+        transfer_focused_ids = {course["id"] for course in transfer_focused["courses"]}
 
         self.assertIn("NJ_NORMAL_01", relaxed_ids)
-        self.assertNotIn("NJ_NORMAL_01", strict_ids)
-        self.assertTrue(strict_ids <= relaxed_ids)
+        self.assertIn("NJ_NORMAL_01", transfer_focused_ids)
+        self.assertTrue(transfer_focused_ids <= relaxed_ids)
+
+        relaxed_by_id = {course["id"]: course for course in relaxed["courses"]}
+        focused_by_id = {
+            course["id"]: course for course in transfer_focused["courses"]
+        }
+        focused_order = [course["id"] for course in transfer_focused["courses"]]
+
+        self.assertLess(
+            focused_by_id["NJ_NORMAL_01"]["scoreBreakdown"]["mobility"]["score"],
+            relaxed_by_id["NJ_NORMAL_01"]["scoreBreakdown"]["mobility"]["score"],
+        )
+        self.assertLess(
+            focused_order.index("DY_NORMAL_01"),
+            focused_order.index("NJ_NORMAL_01"),
+        )
+        self.assertIn(
+            "환승 최소 기준",
+            focused_by_id["NJ_NORMAL_01"]["scoreBreakdown"]["mobility"]["explanation"],
+        )
 
     def test_condition_changes_actual_ranking_order(self) -> None:
         with self._with_traffic({}):
