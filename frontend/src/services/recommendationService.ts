@@ -6,7 +6,12 @@ import { fetchApiJson, isApiNotFoundError } from './apiClient.ts'
 export async function getRecommendations(
   conditions: TravelConditions,
 ): Promise<RecommendationResult> {
-  if (!conditions.departure || !conditions.duration) {
+  if (
+    !conditions.departure ||
+    !conditions.duration ||
+    !conditions.mobility ||
+    conditions.preferences.length === 0
+  ) {
     return { courses: [], exclusions: [], suggestions: [], meta: null }
   }
 

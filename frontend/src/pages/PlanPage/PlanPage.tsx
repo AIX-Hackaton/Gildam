@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AppShell } from '../../components/common/AppShell/AppShell.tsx'
@@ -13,7 +13,10 @@ import {
   preferenceOptions,
 } from '../../constants/travelConditionOptions.ts'
 import { useTravelConditions } from '../../hooks/useTravelConditions.ts'
+import { interpretPreferences } from '../../services/aiPreferenceService.ts'
 import styles from './PlanPage.module.css'
+
+type InterpretationStatus = 'success' | 'error' | null
 
 export function PlanPage() {
   const navigate = useNavigate()
@@ -22,11 +25,17 @@ export function PlanPage() {
     setDeparture,
     setDuration,
     setMobility,
+    setPreferences,
     togglePreference,
     isComplete,
   } = useTravelConditions()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPreferenceToast, setShowPreferenceToast] = useState(false)
+  const [preferenceText, setPreferenceText] = useState('')
+  const [isInterpreting, setIsInterpreting] = useState(false)
+  const [interpretationStatus, setInterpretationStatus] =
+    useState<InterpretationStatus>(null)
+  const interpretationInFlight = useRef(false)
 
   useEffect(() => {
     if (!showPreferenceToast) return
@@ -58,6 +67,29 @@ export function PlanPage() {
   ) => {
     setShowPreferenceToast(false)
     togglePreference(preference)
+  }
+
+  const handleInterpretPreferences = async () => {
+    const trimmedText = preferenceText.trim()
+    if (!trimmedText || interpretationInFlight.current) return
+
+    interpretationInFlight.current = true
+    setIsInterpreting(true)
+    setInterpretationStatus(null)
+
+    try {
+      const interpretation = await interpretPreferences(trimmedText)
+
+      setPreferences(interpretation.preferences)
+      setMobility(interpretation.mobility)
+      setShowPreferenceToast(false)
+      setInterpretationStatus('success')
+    } catch {
+      setInterpretationStatus('error')
+    } finally {
+      interpretationInFlight.current = false
+      setIsInterpreting(false)
+    }
   }
 
   return (
@@ -97,6 +129,61 @@ export function PlanPage() {
             onSelect={setDuration}
           />
 
+          <section
+            className={styles.preferenceInterpreter}
+            aria-busy={isInterpreting}
+          >
+            <label
+              className={styles.interpreterLabel}
+              htmlFor="travel-preference-text"
+            >
+              여행 취향을 문장으로 입력
+            </label>
+            <p
+              id="travel-preference-description"
+              className={styles.interpreterDescription}
+            >
+              원하는 분위기와 이동 방식을 적으면 AI가 아래 조건으로 정리해요.
+            </p>
+            <textarea
+              id="travel-preference-text"
+              className={styles.preferenceTextarea}
+              value={preferenceText}
+              onChange={(event) => {
+                setPreferenceText(event.target.value)
+                setInterpretationStatus(null)
+              }}
+              placeholder="예: 많이 걷지 않고 오래된 거리와 시장을 둘러보고 싶어요"
+              aria-describedby="travel-preference-description"
+              disabled={isInterpreting}
+              rows={4}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              className={styles.interpretButton}
+              fullWidth
+              disabled={preferenceText.trim().length === 0 || isInterpreting}
+              loading={isInterpreting}
+              onClick={handleInterpretPreferences}
+            >
+              조건에 반영하기
+            </Button>
+            <div
+              className={styles.interpretationStatus}
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {interpretationStatus === 'success'
+                ? '입력한 내용을 조건에 반영했어요'
+                : null}
+              {interpretationStatus === 'error'
+                ? '문장을 해석하지 못했어요. 아래에서 직접 선택해주세요.'
+                : null}
+            </div>
+          </section>
+
           <ConditionGroup
             legend="이동 부담"
             options={mobilityOptions}
@@ -126,9 +213,7 @@ export function PlanPage() {
           form="travel-plan-form"
           className={styles.cta}
           fullWidth
-          disabled={
-            conditions.departure === null || conditions.duration === null
-          }
+          disabled={!isComplete}
           loading={isSubmitting}
         >
           코스 추천받기

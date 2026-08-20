@@ -29,7 +29,9 @@ export function ResultsContent({
     conditions.duration
       ? getOptionLabel(durationOptions, conditions.duration)
       : null,
-    getOptionLabel(mobilityOptions, conditions.mobility),
+    conditions.mobility
+      ? getOptionLabel(mobilityOptions, conditions.mobility)
+      : null,
     ...conditions.preferences.map((preference) =>
       getOptionLabel(preferenceOptions, preference),
     ),

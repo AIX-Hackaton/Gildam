@@ -42,6 +42,10 @@ python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
 | `TRAFFIC_API_SERVICE_KEY` | (없음) | 공공데이터포털 TAGO 버스도착정보 인증키 |
 | `TRAFFIC_API_TIMEOUT_SECONDS` | `5` | 실시간 교통 조회 타임아웃 |
 | `TRAFFIC_TAGO_BUS_ARRIVAL_BASE_URL` | `https://apis.data.go.kr/1613000/ArvlInfoInqireService` | TAGO 버스도착정보 기본 URL |
+| `GEMINI_API_KEY` | (필수) | 자연어 취향 해석용 Gemini 인증키. 백엔드에서만 보관합니다. |
+| `GEMINI_MODEL` | `gemini-3.7-flash` | 취향 분류에 사용할 Gemini 모델 |
+| `GEMINI_API_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta` | Gemini API 기본 URL |
+| `GEMINI_TIMEOUT_SECONDS` | `15` | Gemini 호출 타임아웃 |
 
 ## Tests
 
@@ -198,6 +202,28 @@ curl -X POST http://127.0.0.1:8001/api/recommendations \
 현재 추천 파이프라인은 이동 부담 조건을 탈락 필터가 아니라 점수 가중치로 반영하므로
 `MOBILITY_LIMIT_EXCEEDED`는 호환성을 위해 남아 있는 코드이며 새 응답에서는 발생하지 않습니다.
 
+### `POST /api/ai/interpret-preferences`
+
+사용자가 입력한 한국어 문장을 기존 추천 엔진이 이해하는 취향·이동 부담 코드로만
+변환합니다. AI는 코스를 생성하거나 추천 순위를 계산하지 않습니다.
+
+```bash
+curl -X POST http://127.0.0.1:8001/api/ai/interpret-preferences \
+  -H "Content-Type: application/json" \
+  -d '{"text":"많이 걷지 않고 오래된 거리와 시장을 둘러보고 싶어요"}'
+```
+
+```json
+{
+  "preferences": ["HISTORY_CULTURE", "FOOD_MARKET"],
+  "mobility": "LOW_BURDEN"
+}
+```
+
+문장에 드러나지 않은 취향은 임의로 만들지 않으며, 해석 실패 시에도 프론트엔드는
+기존 수동 선택 UI를 계속 사용할 수 있습니다. 인증키와 Gemini 내부 오류는 응답에
+노출하지 않습니다.
+
 ## 오류 응답 규격
 
 모든 오류는 같은 모양입니다. 프론트엔드가 코드로 분기할 수 있습니다.
@@ -211,7 +237,8 @@ curl -X POST http://127.0.0.1:8001/api/recommendations \
 | 404 | `NOT_FOUND` |
 | 422 | `INVALID_REQUEST` |
 | 502 | `TOUR_API_PROVIDER_ERROR`, `TOUR_API_UNAVAILABLE`, `TOUR_API_ERROR` |
-| 503 | `TOUR_API_NOT_CONFIGURED` |
+| 502 | `AI_PROVIDER_ERROR`, `AI_UNAVAILABLE`, `AI_INVALID_RESPONSE` |
+| 503 | `TOUR_API_NOT_CONFIGURED`, `AI_NOT_CONFIGURED` |
 | 500 | `SERVER_ERROR` |
 
 ## Structure

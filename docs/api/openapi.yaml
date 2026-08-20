@@ -302,6 +302,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/ai/interpret-preferences:
+    post:
+      summary: Interpret Ai Preferences
+      description: 사용자 문장을 기존 취향·이동 부담 코드로만 변환합니다.
+      operationId: interpret_ai_preferences_api_ai_interpret_preferences_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiPreferenceInterpretationRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiPreferenceInterpretationResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/recommendations:
     post:
       summary: Read Recommendations
@@ -336,6 +360,41 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
+    AiPreferenceInterpretationRequest:
+      properties:
+        text:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Text
+      type: object
+      required:
+      - text
+      title: AiPreferenceInterpretationRequest
+    AiPreferenceInterpretationResponse:
+      properties:
+        preferences:
+          items:
+            type: string
+            enum:
+            - NATURE_WALK
+            - HISTORY_CULTURE
+            - FOOD_MARKET
+            - MEMORY
+          type: array
+          title: Preferences
+        mobility:
+          type: string
+          enum:
+          - MIN_TRANSFER
+          - LOW_BURDEN
+          - ANY
+          title: Mobility
+      type: object
+      required:
+      - preferences
+      - mobility
+      title: AiPreferenceInterpretationResponse
     CourseDestination:
       properties:
         name:

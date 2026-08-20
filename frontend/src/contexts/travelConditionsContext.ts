@@ -13,6 +13,7 @@ export interface TravelConditionsContextValue {
   setDeparture: (departure: DepartureId) => void
   setDuration: (duration: DurationId) => void
   setMobility: (mobility: MobilityId) => void
+  setPreferences: (preferences: PreferenceId[]) => void
   togglePreference: (preference: PreferenceId) => void
   isComplete: boolean
 }

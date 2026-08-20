@@ -17,10 +17,10 @@ describe('recommendationService', () => {
 
   it('returns no recommendations when required conditions are missing', async () => {
     const conditions: TravelConditions = {
-      departure: null,
+      departure: 'USQUARE',
       duration: 'FULL_DAY',
       preferences: ['NATURE_WALK'],
-      mobility: 'ANY',
+      mobility: null,
     }
 
     await expect(getRecommendations(conditions)).resolves.toEqual({
