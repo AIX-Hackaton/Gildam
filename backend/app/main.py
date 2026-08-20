@@ -8,6 +8,18 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from backend.app.ai_preferences.client import (
+    GeminiConfigurationError,
+    GeminiError,
+    GeminiInvalidResponseError,
+    GeminiPreferenceClient,
+    GeminiTransportError,
+    get_gemini_preference_client,
+)
+from backend.app.ai_preferences.models import (
+    AiPreferenceInterpretationRequest,
+    AiPreferenceInterpretationResponse,
+)
 from backend.app.courses import exposure
 from backend.app.courses.data import DATA_SNAPSHOT_DATE, DATA_SOURCE_URL, SCHEMA_VERSION
 from backend.app.courses.lineage import build_lineage_report
@@ -134,6 +146,39 @@ def _tour_api_error(exc: TourApiError) -> HTTPException:
     )
 
 
+def _gemini_error(exc: GeminiError) -> HTTPException:
+    if isinstance(exc, GeminiConfigurationError):
+        return HTTPException(
+            status_code=503,
+            detail=_error_body(
+                "AI_NOT_CONFIGURED",
+                "취향 해석 기능을 사용할 수 없습니다. 아래에서 직접 선택해 주세요.",
+            ),
+        )
+
+    if isinstance(exc, GeminiInvalidResponseError):
+        return HTTPException(
+            status_code=502,
+            detail=_error_body(
+                "AI_INVALID_RESPONSE",
+                "문장을 해석하지 못했습니다. 아래에서 직접 선택해 주세요.",
+            ),
+        )
+
+    if isinstance(exc, GeminiTransportError):
+        code = "AI_UNAVAILABLE"
+    else:
+        code = "AI_PROVIDER_ERROR"
+
+    return HTTPException(
+        status_code=502,
+        detail=_error_body(
+            code,
+            "문장을 해석하지 못했습니다. 아래에서 직접 선택해 주세요.",
+        ),
+    )
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
     detail = exc.detail
@@ -158,7 +203,7 @@ async def validation_exception_handler(
         content={
             **_error_body(
                 "INVALID_REQUEST",
-                "요청 조건이 올바르지 않습니다. 출발지·가능 시간·취향·이동 부담을 다시 선택해 주세요.",
+                "요청 내용이 올바르지 않습니다. 입력값을 확인해 주세요.",
             ),
             "errors": [
                 {"field": ".".join(str(part) for part in error.get("loc", [])),
@@ -402,6 +447,22 @@ def read_course_detail(
         )
 
     return course
+
+
+@app.post(
+    "/api/ai/interpret-preferences",
+    response_model=AiPreferenceInterpretationResponse,
+)
+def interpret_ai_preferences(
+    request: AiPreferenceInterpretationRequest,
+    client: GeminiPreferenceClient = Depends(get_gemini_preference_client),
+) -> AiPreferenceInterpretationResponse:
+    """사용자 문장을 기존 취향·이동 부담 코드로만 변환합니다."""
+
+    try:
+        return client.interpret(request.text)
+    except GeminiError as exc:
+        raise _gemini_error(exc) from exc
 
 
 @app.post("/api/recommendations", response_model=RecommendationResponse)
