@@ -22,7 +22,6 @@ export function ResultsPage() {
       : null
   const {
     courses,
-    exclusions,
     suggestions,
     isLoading,
     hasError,
@@ -65,7 +64,6 @@ export function ResultsPage() {
           <ResultsContent
             conditions={conditions}
             courses={courses}
-            excludedCourses={exclusions}
             onOpenCourse={(courseId) => navigate(`/courses/${courseId}`)}
           />
         )}

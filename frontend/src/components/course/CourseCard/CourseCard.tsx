@@ -2,6 +2,8 @@ import type { CourseSummary } from '../../../types/course.ts'
 import {
   formatCompactLabel,
   formatRecommendationReason,
+  getTopRecommendationReasons,
+  getReturnActionLabel,
   getReturnFeasibilityLabel,
 } from '../../../utils/coursePresentation.ts'
 import { Button } from '../../common/Button/Button.tsx'
@@ -26,6 +28,11 @@ export function CourseCard({
     course.returnFeasibility.status === 'FEASIBLE'
       ? styles.returnAvailable
       : styles.returnTight
+  const returnActionLabel = getReturnActionLabel(course.returnFeasibility)
+  const recommendationReasons = getTopRecommendationReasons(
+    course,
+    featured ? 3 : 2,
+  )
 
   return (
     <article className={`${styles.card} ${featured ? styles.featured : ''}`}>
@@ -53,24 +60,29 @@ export function CourseCard({
 
         <CourseMetrics course={course} variant="card" />
 
-        <div className={styles.tags} aria-label="코스 취향">
-          {course.tags.slice(0, 3).map((tag) => (
-            <span className={styles.tag} key={tag}>
-              {formatCompactLabel(tag)}
-            </span>
-          ))}
-          {returnFeasibilityLabel ? (
-            <span className={`${styles.tag} ${returnFeasibilityClassName}`}>
-              {returnFeasibilityLabel}
-            </span>
+        <div className={styles.returnStatus}>
+          <div className={styles.tags} aria-label="코스 취향">
+            {course.tags.slice(0, 3).map((tag) => (
+              <span className={styles.tag} key={tag}>
+                {formatCompactLabel(tag)}
+              </span>
+            ))}
+            {returnFeasibilityLabel ? (
+              <span className={`${styles.tag} ${returnFeasibilityClassName}`}>
+                {returnFeasibilityLabel}
+              </span>
+            ) : null}
+          </div>
+          {returnActionLabel ? (
+            <p className={styles.returnCheck}>{returnActionLabel}</p>
           ) : null}
         </div>
 
-        {featured ? (
+        {recommendationReasons.length > 0 ? (
           <section className={styles.reasons} aria-labelledby={`${course.id}-reason`}>
             <h3 id={`${course.id}-reason`}>추천 이유</h3>
             <ul>
-              {course.recommendationReasons.slice(0, 3).map((reason) => (
+              {recommendationReasons.map((reason) => (
                 <li key={reason}>{formatRecommendationReason(reason)}</li>
               ))}
             </ul>

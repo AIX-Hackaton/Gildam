@@ -2,6 +2,8 @@ import type { Course } from '../../../types/course.ts'
 import {
   formatCompactLabel,
   formatRecommendationReason,
+  formatTransportGuidance,
+  getReturnActionLabel,
   getReturnFeasibilityLabel,
 } from '../../../utils/coursePresentation.ts'
 import { Button } from '../../common/Button/Button.tsx'
@@ -28,6 +30,12 @@ export function CourseDetailContent({ course }: CourseDetailContentProps) {
     course.returnFeasibility.status === 'FEASIBLE'
       ? styles.returnAvailable
       : styles.returnTight
+  const returnActionLabel = getReturnActionLabel(course.returnFeasibility)
+  const returnConfidenceLabel =
+    course.returnFeasibility.confidence === 'CONFIRMED'
+      ? '귀가 교통 확인 완료'
+      : returnActionLabel
+  const returnGuidance = course.returnFeasibility.returnTransport?.note
 
   return (
     <>
@@ -66,6 +74,39 @@ export function CourseDetailContent({ course }: CourseDetailContentProps) {
           </section>
 
           <CourseMetrics course={course} variant="detail" />
+
+          <section className={`${styles.section} ${styles.returnSection}`}>
+            <h2>귀가 정보</h2>
+
+            {returnConfidenceLabel ? (
+              <p
+                className={
+                  returnActionLabel
+                    ? styles.returnCheck
+                    : styles.returnConfirmed
+                }
+              >
+                {returnConfidenceLabel}
+              </p>
+            ) : null}
+
+            {course.returnFeasibility.departureTime &&
+            course.returnFeasibility.plannedReturnTime ? (
+              <p className={styles.returnSchedule}>
+                <span>기준 일정</span>
+                <strong>
+                  {course.returnFeasibility.departureTime} →{' '}
+                  {course.returnFeasibility.plannedReturnTime}
+                </strong>
+              </p>
+            ) : null}
+
+            {returnGuidance ? (
+              <p className={styles.returnGuidance}>
+                {formatTransportGuidance(returnGuidance)}
+              </p>
+            ) : null}
+          </section>
 
           <section className={styles.section}>
             <h2>추천 이유</h2>

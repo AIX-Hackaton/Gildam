@@ -7,10 +7,6 @@ import {
   preferenceOptions,
 } from '../../constants/travelConditionOptions.ts'
 import type { CourseSummary } from '../../types/course.ts'
-import type {
-  ExcludedCourse,
-  ExclusionReasonCode,
-} from '../../types/recommendation.ts'
 import type { TravelConditions } from '../../types/travelConditions.ts'
 import { formatCompactLabel } from '../../utils/coursePresentation.ts'
 import styles from './ResultsContent.module.css'
@@ -18,19 +14,12 @@ import styles from './ResultsContent.module.css'
 interface ResultsContentProps {
   conditions: TravelConditions
   courses: CourseSummary[]
-  excludedCourses: ExcludedCourse[]
   onOpenCourse: (courseId: string) => void
 }
-
-const INTERNAL_EXCLUSION_CODES = new Set<ExclusionReasonCode>([
-  'BLOCKED_BY_EXPOSURE_POLICY',
-  'SCHEMA_INVALID',
-])
 
 export function ResultsContent({
   conditions,
   courses,
-  excludedCourses,
   onOpenCourse,
 }: ResultsContentProps) {
   const conditionLabels = [
@@ -47,15 +36,16 @@ export function ResultsContent({
   ].filter(Boolean) as string[]
 
   const [featuredCourse, ...alternativeCourses] = courses.slice(0, 3)
-  const visibleExclusions = excludedCourses
-    .map((course) => ({
-      ...course,
-      reasons: course.reasons.filter(
-        (reason) => !INTERNAL_EXCLUSION_CODES.has(reason.code),
-      ),
-    }))
-    .filter((course) => course.reasons.length > 0)
-    .slice(0, 3)
+  const scoreBreakdown = featuredCourse.scoreBreakdown
+  const recommendationCriteria = scoreBreakdown
+    ? [
+        { label: '취향 일치도', weight: scoreBreakdown.preferenceMatch.weight },
+        { label: '이동 부담', weight: scoreBreakdown.mobility.weight },
+        { label: '귀가 여유', weight: scoreBreakdown.returnMargin.weight },
+        { label: '지역성', weight: scoreBreakdown.localResource.weight },
+        { label: '기록 적합성', weight: scoreBreakdown.recordFit.weight },
+      ]
+    : []
 
   return (
     <>
@@ -66,10 +56,27 @@ export function ResultsContent({
         </h1>
       </section>
 
-      <div className={styles.conditionChips} aria-label="선택한 여행 조건">
-        {conditionLabels.map((label) => (
-          <span key={label}>{formatCompactLabel(label)}</span>
-        ))}
+      <div className={styles.conditionSummary}>
+        <div className={styles.conditionChips} aria-label="선택한 여행 조건">
+          {conditionLabels.map((label) => (
+            <span key={label}>{formatCompactLabel(label)}</span>
+          ))}
+        </div>
+
+        {recommendationCriteria.length > 0 ? (
+          <details className={styles.criteria}>
+            <summary>추천 기준 보기</summary>
+            <p>선택한 조건과 이동 가능성을 아래 비율로 반영했어요.</p>
+            <dl>
+              {recommendationCriteria.map(({ label, weight }) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{Math.round(weight * 100)}%</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
+        ) : null}
       </div>
 
       <div className={styles.rankedCourse}>
@@ -99,22 +106,6 @@ export function ResultsContent({
             ))}
           </div>
         </section>
-      ) : null}
-
-      {visibleExclusions.length > 0 ? (
-        <details className={styles.exclusions}>
-          <summary>다른 코스가 제외된 이유</summary>
-          <ul>
-            {visibleExclusions.map((course) => (
-              <li key={course.id}>
-                <strong>{course.title}</strong>
-                {course.reasons.slice(0, 2).map((reason) => (
-                  <p key={reason.code}>{reason.message}</p>
-                ))}
-              </li>
-            ))}
-          </ul>
-        </details>
       ) : null}
     </>
   )

@@ -66,6 +66,11 @@
   font-size: 1.25rem;
 }
 
+.returnStatus {
+  display: grid;
+  gap: 8px;
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;
@@ -96,6 +101,15 @@
   color: var(--color-warning);
   background: var(--color-return-tight-background);
   font-weight: 600;
+}
+
+.returnCheck {
+  margin: 0;
+  color: var(--color-text-tertiary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
 }
 
 .reasons h3 {

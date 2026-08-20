@@ -47,6 +47,56 @@
   letter-spacing: -0.025em;
 }
 
+.returnSection {
+  padding: var(--space-5);
+  border-radius: 15px;
+  background: #f4f9ee;
+}
+
+.returnCheck,
+.returnConfirmed {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+}
+
+.returnCheck {
+  color: var(--color-warning);
+}
+
+.returnConfirmed {
+  color: var(--color-success);
+}
+
+.returnSchedule {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.returnSchedule span {
+  color: var(--color-text-tertiary);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.returnSchedule strong {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.returnGuidance {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
 .description {
   margin-top: 12px !important;
   color: #968d88;
