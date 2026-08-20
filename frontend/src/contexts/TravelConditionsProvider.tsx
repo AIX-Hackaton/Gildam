@@ -33,6 +33,8 @@ export function TravelConditionsProvider({
         setConditions((current) => ({ ...current, duration })),
       setMobility: (mobility) =>
         setConditions((current) => ({ ...current, mobility })),
+      setPreferences: (preferences) =>
+        setConditions((current) => ({ ...current, preferences })),
       togglePreference: (preference) =>
         setConditions((current) => ({
           ...current,
